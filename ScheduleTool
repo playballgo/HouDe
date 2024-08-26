@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Schedule</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Training Schedule</h1>
+
+    <div id="schedules"></div>
+    <h2>Unscheduled Students</h2>
+    <div id="unscheduled"></div>
+
+    <script>
+        const students = [
+            { name: "Alice Johnson", availability: ["Monday 18:00", "Monday 19:00"], coach: "Coach A" },
+            { name: "Bob Smith", availability: ["Monday 18:00", "Tuesday 18:00"], coach: "Coach A" },
+            { name: "Catherine Lee", availability: ["Monday 18:00", "Wednesday 18:00"], coach: "Coach A" },
+            { name: "David Brown", availability: ["Monday 18:00", "Thursday 18:00"], coach: "Coach A" },
+            { name: "Eva Martinez", availability: ["Monday 19:00", "Friday 18:00"], coach: "Coach A" },
+            { name: "Frank Wilson", availability: ["Monday 19:00", "Monday 18:00"], coach: "Coach A" },
+            { name: "Grace Taylor", availability: ["Tuesday 18:00", "Tuesday 19:00"], coach: "Coach B" },
+            { name: "Henry Davis", availability: ["Tuesday 18:00", "Wednesday 18:00"], coach: "Coach B" },
+            { name: "Isabella Miller", availability: ["Tuesday 19:00", "Wednesday 19:00"], coach: "Coach B" },
+            { name: "Jack White", availability: ["Wednesday 18:00", "Wednesday 19:00"], coach: "Coach C" },
+            { name: "Karen Hall", availability: ["Wednesday 18:00", "Thursday 18:00"], coach: "Coach C" },
+            { name: "Liam Scott", availability: ["Thursday 18:00", "Thursday 19:00"], coach: "Coach D" },
+            { name: "Mia Clark", availability: ["Thursday 18:00", "Friday 18:00"], coach: "Coach D" },
+            { name: "Noah Lewis", availability: ["Friday 18:00", "Friday 19:00"], coach: "Coach E" },
+            { name: "Olivia Young", availability: ["Friday 18:00", "Thursday 19:00"], coach: "Coach E" },
+            { name: "Paul Harris", availability: ["Monday 19:00", "Tuesday 19:00", "Wednesday 18:00"], coach: "Coach A" },
+            { name: "Quinn Walker", availability: ["Monday 18:00", "Tuesday 19:00", "Wednesday 19:00"], coach: "Coach A" },
+            { name: "Ruby Robinson", availability: ["Monday 19:00", "Wednesday 19:00", "Thursday 18:00"], coach: "Coach B" },
+            { name: "Sam King", availability: ["Tuesday 18:00", "Wednesday 18:00", "Thursday 19:00"], coach: "Coach B" },
+            { name: "Tina Green", availability: ["Tuesday 19:00", "Wednesday 19:00", "Friday 18:00"], coach: "Coach B" },
+            { name: "Uma Adams", availability: ["Wednesday 18:00", "Thursday 18:00", "Friday 18:00"], coach: "Coach C" },
+            { name: "Victor Carter", availability: ["Wednesday 19:00", "Thursday 19:00", "Friday 19:00"], coach: "Coach C" },
+            { name: "Wendy Hill", availability: ["Thursday 18:00", "Friday 18:00", "Monday 18:00"], coach: "Coach C" },
+            { name: "Xander Campbell", availability: ["Thursday 19:00", "Monday 19:00", "Wednesday 18:00"], coach: "Coach C" },
+            { name: "Yara Mitchell", availability: ["Friday 18:00", "Monday 18:00", "Tuesday 19:00"], coach: "Coach D" },
+            { name: "Zane Parker", availability: ["Friday 19:00", "Tuesday 19:00", "Wednesday 19:00"], coach: "Coach D" },
+            { name: "Anna Edwards", availability: ["Monday 19:00", "Wednesday 19:00", "Thursday 18:00"], coach: "Coach A" },
+            { name: "Brian Ramirez", availability: ["Tuesday 19:00", "Wednesday 19:00", "Friday 18:00"], coach: "Coach B" },
+            { name: "Chloe Rodriguez", availability: ["Wednesday 18:00", "Thursday 18:00", "Friday 19:00"], coach: "Coach C" },
+            { name: "Daniel Perez", availability: ["Thursday 19:00", "Monday 19:00", "Wednesday 18:00"], coach: "Coach D" },
+            { name: "Elena Turner", availability: ["Friday 18:00", "Tuesday 18:00", "Wednesday 19:00"], coach: "Coach D" },
+            { name: "Felix Collins", availability: ["Monday 18:00", "Thursday 18:00", "Friday 18:00"], coach: "Coach A" },
+            { name: "Gabriella Sanchez", availability: ["Tuesday 18:00", "Thursday 19:00", "Friday 19:00"], coach: "Coach B" },
+            { name: "Hector Stewart", availability: ["Wednesday 18:00", "Friday 18:00", "Monday 19:00"], coach: "Coach C" },
+            { name: "Ivy Murphy", availability: ["Thursday 19:00", "Monday 18:00", "Wednesday 19:00"], coach: "Coach D" },
+            { name: "Jacob Hughes", availability: ["Friday 19:00", "Tuesday 19:00", "Wednesday 19:00"], coach: "Coach E" },
+            { name: "Kylie Foster", availability: ["Monday 19:00", "Wednesday 18:00", "Friday 19:00"], coach: "Coach A" },
+            { name: "Leo Ramirez", availability: ["Tuesday 18:00", "Thursday 18:00", "Friday 18:00"], coach: "Coach B" },
+            { name: "Megan Howard", availability: ["Wednesday 18:00", "Friday 18:00", "Monday 18:00"], coach: "Coach C" },
+            { name: "Nathan Ward", availability: ["Thursday 19:00", "Friday 19:00", "Tuesday 19:00"], coach: "Coach D" }
+        ];
+
+        const coaches = [
+            { name: "Coach A" },
+            { name: "Coach B" },
+            { name: "Coach C" },
+            { name: "Coach D" },
+            { name: "Coach E" }
+        ];
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const timeSlots = ["18:00", "19:00"];
+
+        const schedule = {};
+        const unscheduledStudents = [];
+
+        coaches.forEach(coach => {
+            schedule[coach.name] = {};
+
+            days.forEach(day => {
+                timeSlots.forEach(slot => {
+                    schedule[coach.name][`${day} ${slot}`] = [];
+                });
+            });
+        });
+
+        students.forEach(student => {
+            let scheduled = false;
+            student.availability.forEach(time => {
+                if (!scheduled && schedule[student.coach][time].length < 2) {
+                    schedule[student.coach][time].push(student.name);
+                    scheduled = true;
+                }
+            });
+            if (!scheduled) {
+                unscheduledStudents.push(student.name);
+            }
+        });
+
+        function generateScheduleHTML(schedule) {
+            let html = '';
+            for (let coach in schedule) {
+                html += `<h2>${coach}'s Schedule</h2>`;
+                html += '<table>';
+                html += '<tr><th>Time</th><th>Students</th></tr>';
+                for (let time in schedule[coach]) {
+                    html += `<tr><td>${time}</td><td>${schedule[coach][time].join(", ") || "None"}</td></tr>`;
+                }
+                html += '</table>';
+            }
+            return html;
+        }
+
+        function generateUnscheduledHTML(unscheduledStudents) {
+            if (unscheduledStudents.length === 0) {
+                return "<p>All students have been scheduled.</p>";
+            } else {
+                return "<p>" + unscheduledStudents.join(", ") + "</p>";
+            }
+        }
+
+        document.getElementById("schedules").innerHTML = generateScheduleHTML(schedule);
+        document.getElementById("unscheduled").innerHTML = generateUnscheduledHTML(unscheduledStudents);
+    </script>
+</body>
+</html>
