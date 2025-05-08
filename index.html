@@ -15,7 +15,7 @@
 	.player.b-winner { background: #dc3545; color: white; }
     .score { font-size: 1.25rem; margin-top: 0.5rem; }
     .controls { text-align: center; margin-top: 2rem; }
-    .log { max-height: 300px; overflow-y: auto; background: white; border-radius: 0.5rem; padding: 1rem; margin: 2rem auto; width: 80%; box-shadow: 0 0 5px rgba(0,0,0,0.1); font-family: monospace; white-space: pre-wrap; }
+    .log { max-height: 300px; overflow-y: auto; background: white; border-radius: 0.5rem; padding: 1rem; margin: 2rem auto; width: 90%; box-shadow: 0 0 5px rgba(0,0,0,0.1); font-family: monospace; white-space: pre-wrap; }
     .log strong { font-weight: bold; }
     button { padding: 0.5rem 1.5rem; font-size: 1rem; margin: 0.5rem; border: none; border-radius: 0.5rem; background: #4CAF50; color: white; cursor: pointer; }
     input[type="number"] { width: 60px; text-align: center; margin: 0 0.5rem; }
@@ -167,7 +167,7 @@ function updateQualityRate() {
 	  }
       pointNumber++;
 
-      const logEntry = `第 ${gameNum} 局，第 ${pointNumber - 1} 分：${server} 發球，綜合勝率 A: ${effectiveRateA}% B: ${effectiveRateB}%，百分勝率 A: ${(normalizedA * 100).toFixed(1)}% / B: ${(100 - normalizedA * 100).toFixed(1)}%，隨機勝敗判定 ${rnd.toFixed(3)} → ${outcome} ${conditionNote.trim()}`;
+      const logEntry = `${gameNum}-${pointNumber - 1} ${server} 發球:綜合勝率 A:${effectiveRateA}% B:${effectiveRateB}%→百分勝率(${(normalizedA * 100).toFixed(1)}% ${(100 - normalizedA * 100).toFixed(1)}%)，隨機勝敗判定 ${rnd.toFixed(2)}→${outcome} ${conditionNote.trim()}`;
       logPoint(logEntry, isDeuce);
 
       if (isDeuce) {
