@@ -1,51 +1,44 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>乘法與除法練習</title>
-<style>
-  body { font-family: monospace, monospace; padding: 10px; background: #f9f9f9; }
-  label { margin-right: 10px; }
-  #controls { margin-bottom: 10px; }
-  #problems { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-  .problem {
-    background: white;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    white-space: pre-wrap;
-  }
-  textarea.solution {
-    width: 100%;
-    font-family: monospace;
-    white-space: pre-wrap;
-    margin-top: 4px;
-    background: #eef6ff;
-    border: 1px solid #99c;
-    resize: none;
-    overflow: visible;
-    height: auto;
-    min-height: 200px;
-  }
-  input.answer {
-    width: 100%;
-    font-size: 16px;
-    box-sizing: border-box;
-    margin-top: 6px;
-    -moz-appearance: textfield;
-  }
-  /* Remove number input spinners for Chrome, Safari, Edge */
-  input.answer::-webkit-outer-spin-button,
-  input.answer::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  button { margin-top: 10px; padding: 8px 12px; font-size: 16px; cursor: pointer; }
-  #timer { font-weight: bold; margin-left: 10px; }
-  #score { font-weight: bold; margin-top: 12px; font-size: 18px; }
-  #mobileLayoutLabel { user-select: none; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>乘法與除法練習</title>
+  <style>
+    body { font-family: monospace; padding: 10px; background: #f9f9f9; }
+    label { margin-right: 10px; }
+    #controls { margin-bottom: 10px; }
+    #problems { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .problem { background: white; padding: 8px; border-radius: 5px; border: 1px solid #ccc; white-space: pre-wrap; }
+    textarea.solution {
+      width: 100%;
+      font-family: monospace;
+      white-space: pre-wrap;
+      margin-top: 4px;
+      background: #eef6ff;
+      border: 1px solid #99c;
+      resize: none;
+      overflow: visible;
+      height: auto;
+      min-height: 200px;
+    }
+    input.answer {
+      width: 100%;
+      font-size: 16px;
+      box-sizing: border-box;
+      margin-top: 6px;
+      -moz-appearance: textfield;
+    }
+    input.answer::-webkit-outer-spin-button,
+    input.answer::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    button { margin-top: 10px; padding: 8px 12px; font-size: 16px; cursor: pointer; }
+    #timer { font-weight: bold; margin-left: 10px; }
+    #score { font-weight: bold; margin-top: 12px; font-size: 18px; }
+    #mobileLayoutLabel { user-select: none; }
+  </style>
 </head>
 <body>
 
@@ -53,17 +46,11 @@
 
 <div id="controls">
   <label>題數(1~30):
-    <input type="number" id="numQuestions" value="10" min="1" max="30" style="width: 60px;" />
+    <input type="number" id="numQuestions" value="10" min="1" max="30" style="width: 60px;">
   </label>
-  <label>
-    <input type="checkbox" id="mobileLayout" /> 手機排版(一題一行)
-  </label>
-  <label>
-    <input type="radio" name="mode" value="mul" checked /> 乘法模式
-  </label>
-  <label>
-    <input type="radio" name="mode" value="div" /> 除法模式
-  </label>
+  <label><input type="checkbox" id="mobileLayout"> 手機排版(一題一行)</label>
+  <label><input type="radio" name="mode" value="mul" checked> 乘法模式</label>
+  <label><input type="radio" name="mode" value="div"> 除法模式</label>
   <button id="startBtn">開始練習</button>
   <span id="timer"></span>
 </div>
@@ -88,15 +75,14 @@
   let problems = [];
   let timer = null;
   let timeLeft = 0;
-
-  const timePerQuestion = 30;
+  let timePerQuestion = 30;
+  const beep = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
 
   function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   function generateMulProblem() {
-    // 2~3位數 × 2~3位數
     const digitsA = randInt(2,3);
     const digitsB = randInt(2,3);
     const a = randInt(10**(digitsA-1), 10**digitsA -1);
@@ -105,7 +91,6 @@
   }
 
   function generateDivProblem() {
-    // 3~4位數 ÷ 2位數，整除，被除數最多4位數
     const divisor = randInt(10,99);
     const maxQuotient = Math.floor(9999 / divisor);
     const quotient = randInt(10, maxQuotient);
@@ -121,8 +106,6 @@
     const a = p.a.toString();
     const b = p.b.toString();
     const resultStr = p.result.toString();
-
-    // 部分積(每位b乘a)
     const bDigits = b.split('').reverse();
     let partials = [];
     for(let i=0; i<bDigits.length; i++){
@@ -130,14 +113,11 @@
       const partial = (p.a * digit).toString();
       partials.push(padLeft(partial + ' '.repeat(i), resultStr.length));
     }
-
     const width = Math.max(a.length, b.length + 1, resultStr.length);
-
     let lines = [];
-    lines.push(padLeft(a, width));               // 被乘數
-    lines.push('×' + padLeft(b, width-1));      // 乘號與乘數
-    lines.push('-'.repeat(width));               // 分隔線
-
+    lines.push(padLeft(a, width));
+    lines.push('×' + padLeft(b, width-1));
+    lines.push('-'.repeat(width));
     for(let i=0; i<partials.length; i++){
       lines.push(partials[i]);
     }
@@ -145,7 +125,6 @@
       lines.push('-'.repeat(width));
       lines.push(padLeft(resultStr, width));
     }
-
     return lines.join('\n');
   }
 
@@ -153,45 +132,32 @@
     const dividend = p.a.toString();
     const divisor = p.b.toString();
     const quotient = p.result.toString();
-
     const divisorLen = divisor.length;
     const dividendLen = dividend.length;
-
-    // 商行(放在除號上方，空白對齊除號起點)
     const spaceBefore = ' '.repeat(divisorLen + 1);
     const firstLine = spaceBefore + quotient;
     const secondLine = divisor + ')' + dividend;
-
     let lines = [];
     lines.push(firstLine);
     lines.push(secondLine);
-
     let idx = 0;
     let current = parseInt(dividend[idx]);
-
-    // 找第一個 >= 除數的數字起點
     while(current < p.b && idx < dividend.length - 1){
       idx++;
       current = current * 10 + parseInt(dividend[idx]);
     }
-
     const lineLen = divisorLen + dividendLen;
-
     while(idx < dividend.length){
       const qDigit = Math.floor(current / p.b);
       const mult = qDigit * p.b;
       const remainder = current - mult;
-
-      // 對齊乘回去的數字、被除數段
       const spaceCount = lineLen - (dividend.length - idx);
       const currentStr = padLeft(current.toString(), spaceCount);
       const multStr = padLeft(mult.toString(), spaceCount);
       const dashStr = padLeft('-'.repeat(mult.toString().length), spaceCount);
-
       lines.push(currentStr);
       lines.push(multStr);
       lines.push(dashStr);
-
       idx++;
       if(idx < dividend.length){
         current = remainder * 10 + parseInt(dividend[idx]);
@@ -199,22 +165,16 @@
         current = remainder;
       }
     }
-
     if(current !== 0){
       lines.push(spaceBefore + "餘數：" + current);
     }else{
       lines.push(spaceBefore + "沒有餘數");
     }
-
     return lines.join('\n');
   }
 
   function showSolution(p){
-    if(p.op === '×'){
-      return showMulSolution(p);
-    }else{
-      return showDivSolution(p);
-    }
+    return p.op === '×' ? showMulSolution(p) : showDivSolution(p);
   }
 
   function renderProblems(){
@@ -224,14 +184,34 @@
       const div = document.createElement('div');
       div.className = 'problem';
       if(mobile) div.style.gridColumn = 'span 5';
-
       div.innerHTML = `
         <div><b>題目${i+1}:</b> ${p.a} ${p.op} ${p.b} = </div>
-        <input type="number" class="answer" data-index="${i}" autocomplete="off" inputmode="numeric" style="ime-mode: disabled;" />
+        <input type="number" class="answer" data-index="${i}" autocomplete="off" inputmode="numeric" />
         <textarea class="solution" readonly style="display:none;"></textarea>
       `;
       problemsDiv.appendChild(div);
     });
+  }
+
+  function autoSubmit() {
+    if(timer) clearInterval(timer);
+    timerSpan.textContent = '已交卷';
+    const inputs = document.querySelectorAll('input.answer');
+    let correctCount = 0;
+    inputs.forEach((input,i) => {
+      const val = input.value.trim();
+      const p = problems[i];
+      if(val === p.result.toString()){
+        correctCount++;
+      }
+      const parent = input.parentElement;
+      const solutionArea = parent.querySelector('textarea.solution');
+      solutionArea.style.display = 'block';
+      solutionArea.value = showSolution(p);
+      input.disabled = true;
+    });
+    scoreDiv.textContent = `答對 ${correctCount} 題 / 總共 ${problems.length} 題`;
+    submitBtn.disabled = true;
   }
 
   function startTimer(){
@@ -239,15 +219,18 @@
     const n = problems.length;
     timeLeft = n * timePerQuestion;
     timerSpan.textContent = `倒數計時: ${timeLeft} 秒`;
-
     timer = setInterval(() => {
       timeLeft--;
       timerSpan.textContent = `倒數計時: ${timeLeft} 秒`;
+      if (timeLeft === 10) {
+        beep.play();
+      }
       if(timeLeft <= 0){
         clearInterval(timer);
-        timerSpan.textContent = '時間到！請交卷';
+        timerSpan.textContent = '時間到！自動交卷';
+        autoSubmit();
       }
-    },1000);
+    }, 1000);
   }
 
   startBtn.addEventListener('click', () => {
@@ -263,13 +246,11 @@
       }
     }
 
+    timePerQuestion = (mode === 'mul') ? 30 : 45;
+
     problems = [];
     for(let i=0; i<n; i++){
-      if(mode === 'mul'){
-        problems.push(generateMulProblem());
-      }else{
-        problems.push(generateDivProblem());
-      }
+      problems.push(mode === 'mul' ? generateMulProblem() : generateDivProblem());
     }
 
     renderProblems();
@@ -277,42 +258,14 @@
     scoreDiv.textContent = '';
     startTimer();
 
-    // 預設聚焦第一題輸入框
     setTimeout(() => {
       const firstInput = document.querySelector('input.answer');
       if(firstInput) firstInput.focus();
     }, 100);
   });
 
-  submitBtn.addEventListener('click', () => {
-    if(timer) clearInterval(timer);
-    timerSpan.textContent = '已交卷';
-
-    const inputs = document.querySelectorAll('input.answer');
-    let correctCount = 0;
-
-    inputs.forEach((input,i) => {
-      const val = input.value.trim();
-      const p = problems[i];
-      if(val === p.result.toString()){
-        correctCount++;
-      }
-      const parent = input.parentElement;
-      const solutionArea = parent.querySelector('textarea.solution');
-      solutionArea.style.display = 'block';
-      solutionArea.value = showSolution(p);
-
-      input.disabled = true;
-    });
-
-    scoreDiv.textContent = `答對 ${correctCount} 題 / 總共 ${problems.length} 題`;
-    submitBtn.disabled = true;
-  });
-
-  mobileLayoutCheckbox.addEventListener('change', () => {
-    renderProblems();
-  });
-
+  submitBtn.addEventListener('click', autoSubmit);
+  mobileLayoutCheckbox.addEventListener('change', renderProblems);
 })();
 </script>
 
