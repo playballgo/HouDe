@@ -201,11 +201,14 @@
     inputs.forEach((input,i) => {
       const val = input.value.trim();
       const p = problems[i];
-      if(val === p.result.toString()){
-        correctCount++;
-      }
       const parent = input.parentElement;
       const solutionArea = parent.querySelector('textarea.solution');
+      if(val === p.result.toString()){
+        correctCount++;
+        parent.style.backgroundColor = "";
+      } else {
+        parent.style.backgroundColor = "#fdd";
+      }
       solutionArea.style.display = 'block';
       solutionArea.value = showSolution(p);
       input.disabled = true;
