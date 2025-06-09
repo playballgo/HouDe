@@ -36,7 +36,7 @@
     }
     button { margin-top: 10px; padding: 8px 12px; font-size: 16px; cursor: pointer; }
     #timer { font-weight: bold; margin-left: 10px; }
-    #score { font-weight: bold; margin-top: 12px; font-size: 18px; }
+    #score { font-weight: bold; margin-top: 4px; font-size: 18px; white-space: pre; }
     #mobileLayoutLabel { user-select: none; }
   </style>
 </head>
@@ -45,12 +45,12 @@
 <h1>乘法與除法計算練習</h1>
 
 <div id="controls">
-  <label>題數(1~30):
-    <input type="number" id="numQuestions" value="10" min="1" max="30" style="width: 60px;">
-  </label>
+  <label>題數(1~30): <input type="number" id="numQuestions" value="10" min="1" max="30" style="width: 60px;"></label>
   <label><input type="checkbox" id="mobileLayout"> 手機排版(一題一行)</label>
   <label><input type="radio" name="mode" value="mul" checked> 乘法模式</label>
   <label><input type="radio" name="mode" value="div"> 除法模式</label>
+  <label><input type="checkbox" id="randomCheckbox" checked> 隨機出題</label>
+  <label>試卷編號: <input type="number" id="seedInput" value="1234" style="width: 80px;" disabled></label>
   <button id="startBtn">開始練習</button>
   <span id="timer"></span>
 </div>
@@ -71,6 +71,8 @@
   const timerSpan = document.getElementById('timer');
   const scoreDiv = document.getElementById('score');
   const modeRadios = document.getElementsByName('mode');
+  const randomCheckbox = document.getElementById('randomCheckbox');
+  const seedInput = document.getElementById('seedInput');
 
   let problems = [];
   let timer = null;
@@ -82,23 +84,34 @@
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function generateMulProblem() {
-    const digitsA = randInt(2,3);
-    const digitsB = randInt(2,3);
-    const a = randInt(10**(digitsA-1), 10**digitsA -1);
-    const b = randInt(10**(digitsB-1), 10**digitsB -1);
-    return {a,b,op:'×',result: a*b};
+  function seededRandom(seed) {
+    let x = Math.sin(seed.value++) * 10000;
+    return x - Math.floor(x);
   }
 
-  function generateDivProblem() {
-    const divisor = randInt(10,99);
+  function seededRandInt(seed, min, max) {
+    return Math.floor(seededRandom(seed) * (max - min + 1)) + min;
+  }
+
+  function generateMulProblem(seed = null) {
+    const rand = seed ? (min, max) => seededRandInt(seed, min, max) : randInt;
+    const digitsA = rand(2, 3);
+    const digitsB = rand(2, 3);
+    const a = rand(10 ** (digitsA - 1), 10 ** digitsA - 1);
+    const b = rand(10 ** (digitsB - 1), 10 ** digitsB - 1);
+    return { a, b, op: '×', result: a * b };
+  }
+
+  function generateDivProblem(seed = null) {
+    const rand = seed ? (min, max) => seededRandInt(seed, min, max) : randInt;
+    const divisor = rand(10, 99);
     const maxQuotient = Math.floor(9999 / divisor);
-    const quotient = randInt(10, maxQuotient);
+    const quotient = rand(10, maxQuotient);
     const dividend = divisor * quotient;
-    return {a: dividend, b: divisor, op:'÷', result: quotient};
+    return { a: dividend, b: divisor, op: '÷', result: quotient };
   }
 
-  function padLeft(str,len){
+  function padLeft(str, len) {
     return ' '.repeat(len - str.length) + str;
   }
 
@@ -108,7 +121,7 @@
     const resultStr = p.result.toString();
     const bDigits = b.split('').reverse();
     let partials = [];
-    for(let i=0; i<bDigits.length; i++){
+    for (let i = 0; i < bDigits.length; i++) {
       const digit = parseInt(bDigits[i]);
       const partial = (p.a * digit).toString();
       partials.push(padLeft(partial + ' '.repeat(i), resultStr.length));
@@ -116,19 +129,17 @@
     const width = Math.max(a.length, b.length + 1, resultStr.length);
     let lines = [];
     lines.push(padLeft(a, width));
-    lines.push('×' + padLeft(b, width-1));
+    lines.push('×' + padLeft(b, width - 1));
     lines.push('-'.repeat(width));
-    for(let i=0; i<partials.length; i++){
-      lines.push(partials[i]);
-    }
-    if (partials.length > 1){
+    partials.forEach(line => lines.push(line));
+    if (partials.length > 1) {
       lines.push('-'.repeat(width));
       lines.push(padLeft(resultStr, width));
     }
     return lines.join('\n');
   }
 
-  function showDivSolution(p){
+  function showDivSolution(p) {
     const dividend = p.a.toString();
     const divisor = p.b.toString();
     const quotient = p.result.toString();
@@ -137,17 +148,15 @@
     const spaceBefore = ' '.repeat(divisorLen + 1);
     const firstLine = spaceBefore + quotient;
     const secondLine = divisor + ')' + dividend;
-    let lines = [];
-    lines.push(firstLine);
-    lines.push(secondLine);
+    let lines = [firstLine, secondLine];
     let idx = 0;
     let current = parseInt(dividend[idx]);
-    while(current < p.b && idx < dividend.length - 1){
+    while (current < p.b && idx < dividend.length - 1) {
       idx++;
       current = current * 10 + parseInt(dividend[idx]);
     }
     const lineLen = divisorLen + dividendLen;
-    while(idx < dividend.length){
+    while (idx < dividend.length) {
       const qDigit = Math.floor(current / p.b);
       const mult = qDigit * p.b;
       const remainder = current - mult;
@@ -155,37 +164,27 @@
       const currentStr = padLeft(current.toString(), spaceCount);
       const multStr = padLeft(mult.toString(), spaceCount);
       const dashStr = padLeft('-'.repeat(mult.toString().length), spaceCount);
-      lines.push(currentStr);
-      lines.push(multStr);
-      lines.push(dashStr);
+      lines.push(currentStr, multStr, dashStr);
       idx++;
-      if(idx < dividend.length){
-        current = remainder * 10 + parseInt(dividend[idx]);
-      }else{
-        current = remainder;
-      }
+      current = idx < dividend.length ? remainder * 10 + parseInt(dividend[idx]) : remainder;
     }
-    if(current !== 0){
-      lines.push(spaceBefore + "餘數：" + current);
-    }else{
-      lines.push(spaceBefore + "沒有餘數");
-    }
+    lines.push(spaceBefore + (current !== 0 ? "餘數：" + current : "沒有餘數"));
     return lines.join('\n');
   }
 
-  function showSolution(p){
+  function showSolution(p) {
     return p.op === '×' ? showMulSolution(p) : showDivSolution(p);
   }
 
-  function renderProblems(){
+  function renderProblems() {
     problemsDiv.innerHTML = '';
     const mobile = mobileLayoutCheckbox.checked;
-    problems.forEach((p,i) => {
+    problems.forEach((p, i) => {
       const div = document.createElement('div');
       div.className = 'problem';
-      if(mobile) div.style.gridColumn = 'span 5';
+      if (mobile) div.style.gridColumn = 'span 5';
       div.innerHTML = `
-        <div><b>題目${i+1}:</b> ${p.a} ${p.op} ${p.b} = </div>
+        <div><b>題目${i + 1}:</b> ${p.a} ${p.op} ${p.b} = </div>
         <input type="number" class="answer" data-index="${i}" autocomplete="off" inputmode="numeric" />
         <textarea class="solution" readonly style="display:none;"></textarea>
       `;
@@ -193,42 +192,47 @@
     });
   }
 
-  function autoSubmit() {
-    if(timer) clearInterval(timer);
-    timerSpan.textContent = '已交卷';
-    const inputs = document.querySelectorAll('input.answer');
-    let correctCount = 0;
-    inputs.forEach((input,i) => {
-      const val = input.value.trim();
-      const p = problems[i];
-      const parent = input.parentElement;
-      const solutionArea = parent.querySelector('textarea.solution');
-      if(val === p.result.toString()){
-        correctCount++;
-        parent.style.backgroundColor = "";
-      } else {
-        parent.style.backgroundColor = "#fdd";
-      }
-      solutionArea.style.display = 'block';
-      solutionArea.value = showSolution(p);
-      input.disabled = true;
-    });
-    scoreDiv.textContent = `答對 ${correctCount} 題 / 總共 ${problems.length} 題`;
-    submitBtn.disabled = true;
-  }
+function autoSubmit() {
+  if (timer) clearInterval(timer);
 
-  function startTimer(){
-    if(timer) clearInterval(timer);
+  const inputs = document.querySelectorAll('input.answer');
+  let correctCount = 0;
+
+  inputs.forEach((input, i) => {
+    const val = input.value.trim();
+    const p = problems[i];
+    const parent = input.parentElement;
+    const solutionArea = parent.querySelector('textarea.solution');
+
+    if (val === p.result.toString()) {
+      correctCount++;
+      parent.style.backgroundColor = "";
+    } else {
+      parent.style.backgroundColor = "#fdd";
+    }
+
+    solutionArea.style.display = 'block';
+    solutionArea.value = showSolution(p);
+    input.disabled = true;
+  });
+
+  // ✅ 結果計算完後再輸出
+  timerSpan.innerHTML = `已交卷<br>答對 ${correctCount} 題 / 總共 ${problems.length} 題`;
+  scoreDiv.textContent = ''; // 這行不一定需要，但保持乾淨
+  submitBtn.disabled = true;
+}
+
+
+  function startTimer() {
+    if (timer) clearInterval(timer);
     const n = problems.length;
     timeLeft = n * timePerQuestion;
-    timerSpan.textContent = `倒數計時: ${timeLeft} 秒`;
+    timerSpan.textContent = `倒數計時: ${timeLeft} 秒\n`;
     timer = setInterval(() => {
       timeLeft--;
       timerSpan.textContent = `倒數計時: ${timeLeft} 秒`;
-      if (timeLeft === 10) {
-        beep.play();
-      }
-      if(timeLeft <= 0){
+      if (timeLeft === 10) beep.play();
+      if (timeLeft <= 0) {
         clearInterval(timer);
         timerSpan.textContent = '時間到！自動交卷';
         autoSubmit();
@@ -238,37 +242,44 @@
 
   startBtn.addEventListener('click', () => {
     let n = parseInt(numQuestionsInput.value);
-    if(isNaN(n) || n < 1) n = 1;
-    if(n > 30) n = 30;
+    if (isNaN(n) || n < 1) n = 1;
+    if (n > 30) n = 30;
 
     let mode = 'mul';
-    for(const r of modeRadios){
-      if(r.checked){
+    for (const r of modeRadios) {
+      if (r.checked) {
         mode = r.value;
         break;
       }
     }
 
-    timePerQuestion = (mode === 'mul') ? 30 : 45;
+    timePerQuestion = mode === 'mul' ? 30 : 45;
 
     problems = [];
-    for(let i=0; i<n; i++){
-      problems.push(mode === 'mul' ? generateMulProblem() : generateDivProblem());
+    const useSeed = !randomCheckbox.checked;
+    let seed = null;
+    if (useSeed) {
+      seed = { value: parseInt(seedInput.value) || 0 };
+    }
+    for (let i = 0; i < n; i++) {
+      problems.push(mode === 'mul' ? generateMulProblem(seed) : generateDivProblem(seed));
     }
 
     renderProblems();
     submitBtn.disabled = false;
     scoreDiv.textContent = '';
     startTimer();
-
     setTimeout(() => {
       const firstInput = document.querySelector('input.answer');
-      if(firstInput) firstInput.focus();
+      if (firstInput) firstInput.focus();
     }, 100);
   });
 
   submitBtn.addEventListener('click', autoSubmit);
   mobileLayoutCheckbox.addEventListener('change', renderProblems);
+  randomCheckbox.addEventListener('change', () => {
+    seedInput.disabled = randomCheckbox.checked;
+  });
 })();
 </script>
 
