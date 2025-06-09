@@ -155,37 +155,51 @@
     }
     return lines.join('\n');
   }
-
+  
   function showDivSolution(p) {
     const dividend = p.a.toString();
     const divisor = p.b.toString();
     const quotient = p.result.toString();
     const divisorLen = divisor.length;
     const dividendLen = dividend.length;
-    const spaceBefore = ' '.repeat(divisorLen + 1);
-    const firstLine = spaceBefore + quotient;
     const secondLine = divisor + ')' + dividend;
+    const firstLine = ' '.repeat(divisorLen + 1 + dividendLen - quotient.length) + quotient;
+  
     let lines = [firstLine, secondLine];
     let idx = 0;
-    let current = parseInt(dividend[idx]);
-    while (current < p.b && idx < dividend.length - 1) {
+    let currentStr = dividend[idx];
+    while (parseInt(currentStr) < p.b && idx < dividend.length - 1) {
       idx++;
-      current = current * 10 + parseInt(dividend[idx]);
+      currentStr += dividend[idx];
     }
-    const lineLen = divisorLen + dividendLen;
+
+    let current = parseInt(currentStr);
+    let startIdx = idx - currentStr.length + 1;
+
     while (idx < dividend.length) {
       const qDigit = Math.floor(current / p.b);
       const mult = qDigit * p.b;
       const remainder = current - mult;
-      const spaceCount = lineLen - (dividend.length - idx);
-      const currentStr = padLeft(current.toString(), spaceCount);
-      const multStr = padLeft(mult.toString(), spaceCount);
-      const dashStr = padLeft('-'.repeat(mult.toString().length), spaceCount);
-      lines.push(currentStr, multStr, dashStr);
+      const printPos = divisorLen + 1 + startIdx;
+    
+      lines.push(' '.repeat(printPos) + current);
+      lines.push(' '.repeat(printPos) + mult);
+      lines.push(' '.repeat(printPos) + '-'.repeat(mult.toString().length));
       idx++;
-      current = idx < dividend.length ? remainder * 10 + parseInt(dividend[idx]) : remainder;
+      if (idx < dividend.length) {
+        currentStr = remainder.toString() + dividend[idx];      
+        current = parseInt(currentStr);
+        // 找出 currentStr 在 dividend 中的位置（避免錯位）
+        let temp = '';
+        startIdx = idx - currentStr.length + 1;
+        if (startIdx < 0) startIdx = 0;    
+      } else {
+        current = remainder;
+      }
     }
-    lines.push(spaceBefore + (current !== 0 ? "餘數：" + current : "沒有餘數"));
+
+    lines.push(' '.repeat(divisorLen + 1) + (current !== 0 ? "餘數：" + current : "沒有餘數"));
+  
     return lines.join('\n');
   }
 
