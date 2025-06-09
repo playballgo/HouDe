@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8">
+<!-- saved from url=(0039)https://playballgo.github.io/HouDe/calc -->
+<html lang="zh-Hant"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>乘法與除法練習</title>
   <style>
@@ -47,17 +47,30 @@
 <div id="controls">
   <label>題數(1~30): <input type="number" id="numQuestions" value="10" min="1" max="30" style="width: 60px;"></label>
   <label><input type="checkbox" id="mobileLayout"> 手機排版(一題一行)</label>
-  <label><input type="radio" name="mode" value="mul" checked> 乘法模式</label>
+  <label><input type="radio" name="mode" value="mul" checked=""> 乘法模式</label>
   <label><input type="radio" name="mode" value="div"> 除法模式</label>
-  <label><input type="checkbox" id="randomCheckbox" checked> 隨機出題</label>
-  <label>試卷編號: <input type="number" id="seedInput" value="1234" style="width: 80px;" disabled></label>
+  <label><input type="checkbox" id="randomCheckbox" checked=""> 隨機出題</label>
+  <label>試卷編號: <input type="number" id="seedInput" value="1234" style="width: 80px;" disabled=""></label>
   <button id="startBtn">開始練習</button>
   <span id="timer"></span>
+
+<div>
+  題目秒數：
+  <label><input type="radio" name="timeLimit" value="30" checked> 30秒</label>
+  <label><input type="radio" name="timeLimit" value="40"> 40秒</label>
+  <label><input type="radio" name="timeLimit" value="50"> 50秒</label>
+  <label><input type="radio" name="timeLimit" value="60"> 60秒</label>
+  <label><input type="radio" name="timeLimit" value="70"> 70秒</label>
+  <label><input type="radio" name="timeLimit" value="80"> 80秒</label>
+  <label><input type="radio" name="timeLimit" value="90"> 90秒</label>
+  <label><input type="radio" name="timeLimit" value="100"> 100秒</label>
+</div>
+
 </div>
 
 <div id="problems"></div>
 
-<button id="submitBtn" disabled>交卷</button>
+<button id="submitBtn" disabled="">交卷</button>
 
 <div id="score"></div>
 
@@ -107,7 +120,11 @@
     const divisor = rand(10, 99);
     const maxQuotient = Math.floor(9999 / divisor);
     const quotient = rand(10, maxQuotient);
-    const dividend = divisor * quotient;
+  
+    // 加入隨機餘數（機率 50%）  
+    const withRemainder = rand(0, 1) === 1;
+    const remainder = withRemainder ? rand(1, divisor - 1) : 0;
+    const dividend = divisor * quotient + remainder;
     return { a: dividend, b: divisor, op: '÷', result: quotient };
   }
 
@@ -186,6 +203,7 @@
       div.innerHTML = `
         <div><b>題目${i + 1}:</b> ${p.a} ${p.op} ${p.b} = </div>
         <input type="number" class="answer" data-index="${i}" autocomplete="off" inputmode="numeric" />
+        ${p.op === '÷' ? '<input type="number" class="remainder" data-index="' + i + '" autocomplete="off" inputmode="numeric" placeholder="餘數(可空)" />' : ''}
         <textarea class="solution" readonly style="display:none;"></textarea>
       `;
       problemsDiv.appendChild(div);
@@ -199,12 +217,22 @@ function autoSubmit() {
   let correctCount = 0;
 
   inputs.forEach((input, i) => {
-    const val = input.value.trim();
     const p = problems[i];
     const parent = input.parentElement;
     const solutionArea = parent.querySelector('textarea.solution');
 
-    if (val === p.result.toString()) {
+    const quotient = parseInt(input.value || '0');
+    let remainder = 0;
+    const remainderInput = parent.querySelector('input.remainder');
+    if (remainderInput) {
+      remainder = parseInt(remainderInput.value || '0');
+    }
+
+    const isCorrect = p.op === '×'
+      ? quotient === p.result
+      : (quotient === Math.floor(p.a / p.b) && remainder === (p.a % p.b));
+
+    if (isCorrect) {
       correctCount++;
       parent.style.backgroundColor = "";
     } else {
@@ -214,6 +242,7 @@ function autoSubmit() {
     solutionArea.style.display = 'block';
     solutionArea.value = showSolution(p);
     input.disabled = true;
+    if (remainderInput) remainderInput.disabled = true;
   });
 
   // ✅ 結果計算完後再輸出
@@ -264,7 +293,13 @@ function autoSubmit() {
       }
     }
 
-    timePerQuestion = mode === 'mul' ? 30 : 45;
+    const timeRadios = document.getElementsByName('timeLimit');
+    for (const r of timeRadios) {
+      if (r.checked) {
+        timePerQuestion = parseInt(r.value);
+        break;
+      }
+    }
 
     problems = [];
     const useSeed = !randomCheckbox.checked;
@@ -294,5 +329,6 @@ function autoSubmit() {
 })();
 </script>
 
-</body>
-</html>
+
+
+</body></html>
