@@ -49,6 +49,7 @@
   <label><input type="checkbox" id="mobileLayout"> 手機排版(一題一行)</label>
   <label><input type="radio" name="mode" value="mul" checked=""> 乘法模式</label>
   <label><input type="radio" name="mode" value="div"> 除法模式</label>
+  <label><input type="radio" name="mode" value="mul_basic"> 基礎乘法模式</label>
   <label><input type="checkbox" id="randomCheckbox" checked=""> 隨機出題</label>
   <label>試卷編號: <input type="number" id="seedInput" value="1234" style="width: 80px;" disabled=""></label>
   <button id="startBtn">開始練習</button>
@@ -126,6 +127,14 @@
     const remainder = withRemainder ? rand(1, divisor - 1) : 0;
     const dividend = divisor * quotient + remainder;
     return { a: dividend, b: divisor, op: '÷', result: quotient };
+  }
+
+  function generateBasicMulProblem(seed = null) {
+    const rand = seed ? (min, max) => seededRandInt(seed, min, max) : randInt;
+    const type = rand(0, 1); // 0: 2x2, 1: 2x1
+    const a = rand(10, 99);
+    const b = type === 0 ? rand(10, 99) : rand(1, 9);
+    return { a, b, op: '×', result: a * b };
   }
 
   function padLeft(str, len) {
@@ -322,7 +331,11 @@ function autoSubmit() {
       seed = { value: parseInt(seedInput.value) || 0 };
     }
     for (let i = 0; i < n; i++) {
-      problems.push(mode === 'mul' ? generateMulProblem(seed) : generateDivProblem(seed));
+      problems.push(
+        mode === 'mul' ? generateMulProblem(seed) :
+        mode === 'div' ? generateDivProblem(seed) :
+        generateBasicMulProblem(seed)
+      );
     }
 
     renderProblems();
