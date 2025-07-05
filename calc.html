@@ -269,8 +269,8 @@ function autoSubmit() {
   });
 
   // ✅ 結果計算完後再輸出
-  timerSpan.innerHTML = `已交卷<br>答對 ${correctCount} 題 / 總共 ${problems.length} 題`;
-  scoreDiv.textContent = ''; // 這行不一定需要，但保持乾淨
+  const usedTime = problems.length * timePerQuestion - timeLeft;
+  timerSpan.innerHTML = `已交卷<br>答對 ${correctCount} 題 / 總共 ${problems.length} 題<br>使用時間：${usedTime} 秒`;  scoreDiv.textContent = ''; // 這行不一定需要，但保持乾淨
   submitBtn.disabled = true;
 }
 
