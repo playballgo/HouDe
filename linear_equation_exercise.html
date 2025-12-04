@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一元一次方程式練習 (固定整數解/多分數係數)</title>
+    <style>
+        /* --- 視覺樣式設定 --- (保持不變) */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 20px; 
+            background-color: #e9eef2; 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 650px; 
+            width: 100%;
+            margin-top: 20px;
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); 
+        }
+        h1 { 
+            color: #1a2a44; 
+            text-align: center; 
+            border-bottom: 3px solid #007bff; 
+            padding-bottom: 15px; 
+            margin-bottom: 30px; 
+            font-size: 2em;
+        }
+        .controls, .question-area, .result-area { 
+            margin-bottom: 25px; 
+            padding: 20px; 
+            border: 1px solid #cce5ff; 
+            border-radius: 8px; 
+            background-color: #f8faff; 
+        }
+        .controls { 
+            display: flex; 
+            gap: 20px; 
+            align-items: center; 
+            justify-content: space-between;
+        }
+        .controls-group {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        .controls label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+            color: #333; 
+        }
+        .controls input[type="checkbox"] { 
+            width: 20px; 
+            height: 20px;
+            cursor: pointer;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: background-color 0.3s, transform 0.1s; 
+            font-weight: bold;
+        }
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .question-area {
+            text-align: center;
+        }
+        #question { 
+            font-size: 2em; 
+            font-weight: bold; 
+            color: #333; 
+            margin: 20px 0; 
+            min-height: 40px; 
+            user-select: none;
+        }
+        #answer-input { 
+            padding: 12px; 
+            font-size: 1.5em; 
+            width: 180px; 
+            border: 3px solid #ffc107; 
+            border-radius: 5px; 
+            text-align: center;
+            margin-right: 10px;
+        }
+        #feedback { 
+            margin-top: 15px; 
+            font-size: 1.2em;
+            font-weight: bold; 
+            min-height: 25px; 
+        }
+        .correct { color: #28a745; }
+        .incorrect { color: #dc3545; }
+        .score-board { 
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            font-size: 1.2em; 
+            font-weight: 600;
+        }
+        .solution-box {
+            margin-top:15px; 
+            text-align: left; 
+            background:#fff0f3; 
+            padding:15px; 
+            border-radius:8px; 
+            border: 1px solid #dc3545;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+        .solution-box ol {
+            padding-left: 20px;
+        }
+        .step-equation {
+            font-family: monospace;
+            font-size: 1.1em;
+            display: block;
+            margin: 5px 0;
+            padding: 3px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 國中數學 一元一次方程式練習</h1>
+
+    <div class="controls">
+        <div class="controls-group">
+            <div>
+                <div style="font-weight: bold; padding: 5px 0;"></div>
+            </div>
+            <div style="margin-left: 20px;">
+                <label for="advanced-mode">晉階題型</label>
+                <input type="checkbox" id="advanced-mode" onchange="generateQuestion()">
+            </div>
+        </div>
+        <button onclick="generateQuestion()">開始/下一題</button>
+    </div>
+
+    <div class="question-area">
+        <h2>請解出 x 的值：</h2>
+        <div id="question">點擊「開始/下一題」按鈕開始練習</div>
+        
+        <div style="margin-top: 20px;">
+            <input type="text" id="answer-input" placeholder="請輸入 x 的值" disabled>
+            <button onclick="checkAnswerWrapper()" disabled id="check-btn">檢查答案</button>
+        </div>
+        
+        <div id="feedback"></div>
+    </div>
+
+    <div class="result-area">
+        <h2>📊 成績統計：</h2>
+        <div class="score-board">
+            <span>✅ 答對題數：<span id="correct-count">0</span></span>
+            <span>總題數：<span id="total-count">0</span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- JS 常數和輔助函數 ---
+    const MIN_COEFF = -50;
+    const MAX_COEFF = 50;
+    const MIN_DEN = 2; // 分母最小值
+    const MAX_DEN = 10; // 分母最大值
+    
+    let correctAnswer = null; 
+    let correctCount = 0;
+    let totalCount = 0;
+    let timeoutId = null; 
+    
+    let currentCoeffs = { type: 'integer' }; 
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    /**
+     * 輔助函數：求最大公因數 (GCD)
+     */
+    function gcd(a, b) {
+        return b === 0 ? a : gcd(b, a % b);
+    }
+    
+    /**
+     * 輔助函數：求最小公倍數 (LCM)
+     */
+    function lcm(a, b) {
+        if (a === 0 || b === 0) return 0;
+        return Math.abs(a * b) / gcd(a, b);
+    }
+    
+    /**
+     * 輔助函數：格式化一個分數 (純文字 (N/M) 格式)
+     * @param {number} num 分子
+     * @param {number} den 分母
+     * @param {boolean} includeParentheses 是否包含括號
+     * @param {boolean} alwaysShowSign 如果是正數是否顯示 '+' 號
+     */
+    function formatFraction(num, den, includeParentheses = true, alwaysShowSign = false) {
+        if (den === 1) {
+            if (num >= 0 && alwaysShowSign) return `+ ${num}`;
+            return num.toString();
+        }
+        
+        const isNegative = num * den < 0;
+        const sign = isNegative ? '-' : (alwaysShowSign ? '+' : '');
+        const absNum = Math.abs(num);
+        const absDen = Math.abs(den);
+
+        // 檢查是否能約分
+        const commonDivisor = gcd(absNum, absDen);
+        const simplifiedNum = absNum / commonDivisor;
+        const simplifiedDen = absDen / commonDivisor;
+
+        if (simplifiedDen === 1) {
+             const simplifiedResult = simplifiedNum;
+             if (isNegative) return `-${simplifiedResult}`;
+             if (alwaysShowSign) return ` + ${simplifiedResult}`;
+             return simplifiedResult.toString();
+        }
+
+        const fractionString = `${simplifiedNum}/${simplifiedDen}`;
+        const formattedSign = sign.trim() === '+' ? ' + ' : sign;
+
+        return `${formattedSign}${includeParentheses ? '(' : ''}${fractionString}${includeParentheses ? ')' : ''}`;
+    }
+
+    /**
+     * 輔助函數：格式化一個**整數**表達式 (e.g., ax + b)
+     */
+    function formatIntegerExpression(a, b, variable) {
+        let x_term = '';
+        let const_term = '';
+
+        if (a !== 0) {
+            if (a === 1) x_term = variable;
+            else if (a === -1) x_term = '-' + variable;
+            else x_term = `${a}${variable}`;
+        }
+
+        if (b !== 0) {
+            if (x_term === '') {
+                const_term = `${b}`;
+            } else {
+                const_term = b > 0 ? ` + ${b}` : ` - ${Math.abs(b)}`;
+            }
+        }
+        
+        let result = x_term + const_term;
+        if (result === '') return '0';
+        if (result.startsWith('- ')) result = result.replace('- ', '-');
+
+        return result.trim();
+    }
+    
+    // --- 整數題型邏輯 (基本) ---
+
+    function generateIntegerQuestion() {
+        let a, b, c, d;
+        let xAnswer;
+        
+        do {
+            a = getRandomInt(MIN_COEFF, MAX_COEFF);
+            c = getRandomInt(MIN_COEFF, MAX_COEFF);
+        } while (a === c || a === 0 && c === 0); 
+
+        xAnswer = getRandomInt(MIN_COEFF, MAX_COEFF);
+        b = getRandomInt(MIN_COEFF, MAX_COEFF);
+        d = (a - c) * xAnswer + b;
+
+        currentCoeffs = { a, b, c, d, type: 'integer' };
+        correctAnswer = xAnswer;
+        
+        const leftSide = formatIntegerExpression(a, b, 'x');
+        const rightSide = formatIntegerExpression(c, d, 'x');
+        return `${leftSide} = ${rightSide}`;
+    }
+
+    function generateIntegerSolutionSteps(a, b, c, d, xAnswer) {
+        const xCoeff = a - c; 
+        const constTerm = d - b;
+        const originalEq = `${formatIntegerExpression(a, b, 'x')} = ${formatIntegerExpression(c, d, 'x')}`;
+
+        let steps = '<h3>解題步驟：</h3><ol>';
+        steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
+
+        const leftXMove = `${a}x ${c >= 0 ? '-' : '+'} ${Math.abs(c)}x`;
+        const rightConstMove = `${d} ${b >= 0 ? '-' : '+'} ${Math.abs(b)}`;
+        steps += `<li>將含有 x 的項移到等號左邊，常數項移到等號右邊：<br><span class="step-equation">${leftXMove} = ${rightConstMove}</span></li>`;
+
+        const leftSideMove = formatIntegerExpression(xCoeff, 0, 'x');
+        steps += `<li>合併同類項： <span class="step-equation">${leftSideMove} = ${constTerm}</span></li>`;
+
+        let finalFraction;
+        if (xCoeff === 1) {
+            finalFraction = `${constTerm}`;
+        } else if (xCoeff === -1) {
+             finalFraction = `-${constTerm}`;
+        } else {
+            finalFraction = `(${constTerm}) / (${xCoeff})`;
+        }
+        
+        steps += `<li>將兩邊同除以 x 的係數 (${xCoeff})： x = ${finalFraction} </li>`;
+        steps += `<li>最終結果： x = ${xAnswer}</li>`;
+        steps += '</ol>';
+        
+        return steps;
+    }
+    
+    // --- 分數題型邏輯 (晉階 - 固定整數解) ---
+    
+    function generateFractionalQuestion() {
+        // 方程式形式: (A/D_A)x + B/D_B = (C/D_C)x + E/D_E
+        
+        // 1. 生成目標整數答案 x_sol
+        const x_sol = getRandomInt(-10, 10);
+        if (x_sol === 0) return generateFractionalQuestion();
+
+        // 2. 生成係數和分母
+        let A_num, A_den, C_num, C_den, B_num, B_den, E_den;
+
+        do {
+            A_num = getRandomInt(MIN_COEFF, MAX_COEFF);
+            A_den = getRandomInt(MIN_DEN, MAX_DEN);
+            C_num = getRandomInt(MIN_COEFF, MAX_COEFF);
+            C_den = getRandomInt(MIN_DEN, MAX_DEN);
+        } while (A_num / A_den === C_num / C_den); // 確保 x 係數不相等
+
+        B_num = getRandomInt(MIN_COEFF, MAX_COEFF);
+        B_den = getRandomInt(1, MAX_DEN); 
+        E_den = getRandomInt(1, MAX_DEN);
+        
+        // 3. 反推 E_num 確保答案是 x_sol
+        // (A/D_A)x + B/D_B = (C/D_C)x + E/D_E
+        // E/D_E = (A/D_A - C/D_C)x + B/D_B
+        
+        const x_coeff_term = (A_num / A_den) - (C_num / C_den);
+        const B_val = B_num / B_den;
+        const E_val = x_coeff_term * x_sol + B_val;
+        
+        // E_num / E_den = E_val  => E_num = E_val * E_den
+        const E_num = Math.round(E_val * E_den);
+        
+        // 4. 確保至少有一個分數常數項
+        if (B_den === 1 && E_den === 1) {
+            return generateFractionalQuestion(); 
+        }
+        
+        // 5. 儲存係數
+        currentCoeffs = { A_num, A_den, B_num, B_den, C_num, C_den, E_num, E_den, type: 'fractional' };
+        correctAnswer = { value: x_sol }; // 答案是整數，但統一用物件儲存
+
+        // 6. 格式化題目字串
+        const A_term = `${formatFraction(A_num, A_den)}x`;
+        const B_term = B_num === 0 ? '' : formatFraction(B_num, B_den, false, true);
+        const C_term = `${formatFraction(C_num, C_den)}x`;
+        const E_term = E_num === 0 ? '' : formatFraction(E_num, E_den, false, true);
+
+        let leftSide = (A_term + B_term).trim();
+        if (leftSide.startsWith('+')) leftSide = leftSide.substring(1).trim();
+
+        let rightSide = (C_term + E_term).trim();
+        if (rightSide.startsWith('+')) rightSide = rightSide.substring(1).trim();
+
+        return `${leftSide} = ${rightSide}`;
+    }
+
+    function generateFractionalSolutionSteps(coeffs, xAnswer) {
+        const { A_num, A_den, B_num, B_den, C_num, C_den, E_num, E_den } = coeffs;
+        const x_sol = xAnswer.value;
+
+        // 找出所有分母的 LCM (修正 1: 僅計算實際分母的 LCM)
+        const allDen = [A_den, B_den, C_den, E_den].filter(d => d !== 1);
+        let commonDen = 1;
+        if (allDen.length > 0) {
+            commonDen = allDen.reduce((acc, val) => lcm(acc, val), 1);
+        }
+
+        // 原始題目格式化
+        const A_term = `${formatFraction(A_num, A_den)}x`;
+        const B_term = B_num === 0 ? '' : formatFraction(B_num, B_den, false, true);
+        const C_term = `${formatFraction(C_num, C_den)}x`;
+        const E_term = E_num === 0 ? '' : formatFraction(E_num, E_den, false, true);
+
+        let leftSide = (A_term + B_term).trim();
+        if (leftSide.startsWith('+')) leftSide = leftSide.substring(1).trim();
+        let rightSide = (C_term + E_term).trim();
+        if (rightSide.startsWith('+')) rightSide = rightSide.substring(1).trim();
+        const originalEq = `${leftSide} = ${rightSide}`;
+
+        let steps = '<h3>解題步驟：</h3><ol>';
+        // 1. 原式
+        steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
+
+        // 2. 清除分母 (通分)
+        const A_new = A_num * (commonDen / A_den);
+        const B_new = B_num * (commonDen / B_den);
+        const C_new = C_num * (commonDen / C_den);
+        const E_new = E_num * (commonDen / E_den);
+
+        const newLeft = `${A_new}x ${B_new >= 0 ? '+' : '-'} ${Math.abs(B_new)}`;
+        const newRight = `${C_new}x ${E_new >= 0 ? '+' : '-'} ${Math.abs(E_new)}`;
+
+        steps += `<li>兩邊同乘以所有分母的 LCM (最小公倍數) ${commonDen} (通分/清除分母)：<br><span class="step-equation">${newLeft} = ${newRight}</span></li>`;
+        
+        // 3. 移項與合併同類項
+        const finalXCoeff = A_new - C_new;
+        const finalConst = E_new - B_new;
+
+        const combinedX = `${finalXCoeff}x`;
+        
+        steps += `<li>將含有 x 的項移到左邊，常數項移到右邊：<br><span class="step-equation">${combinedX} = ${finalConst}</span></li>`;
+
+        // 4. 求解 x
+        const finalFraction = `${finalConst} / ${finalXCoeff}`;
+        // 修正 4: 移除 $ 符號
+        steps += `<li>將兩邊同除以 x 的係數 (${finalXCoeff})： x = ${finalFraction} </li>`;
+
+        // 5. 約分與最終結果
+        const final_N = finalConst / gcd(Math.abs(finalConst), Math.abs(finalXCoeff));
+        const final_M = finalXCoeff / gcd(Math.abs(finalConst), Math.abs(finalXCoeff));
+        
+        // 修正 4: 移除 $ 符號
+        if (final_M !== 1) {
+             steps += `<li>約分： x = ${formatFraction(final_N, final_M, false)}</li>`;
+        }
+        
+        steps += `<li>最終結果： x = ${x_sol}</li>`;
+        steps += '</ol>';
+        
+        return steps;
+    }
+
+    // --- 主要控制函數 ---
+
+    function generateQuestion() {
+        if (timeoutId) clearTimeout(timeoutId);
+
+        const advancedMode = document.getElementById('advanced-mode').checked;
+        let equationString;
+
+        if (advancedMode) {
+            equationString = generateFractionalQuestion();
+        } else {
+            equationString = generateIntegerQuestion();
+        }
+
+        document.getElementById('question').textContent = equationString;
+        document.getElementById('answer-input').value = '';
+        document.getElementById('feedback').innerHTML = ''; 
+        
+        document.getElementById('answer-input').disabled = false;
+        document.getElementById('check-btn').disabled = false;
+        document.getElementById('answer-input').focus();
+        
+        document.getElementById('check-btn').textContent = '檢查答案';
+        document.getElementById('check-btn').onclick = checkAnswerWrapper;
+    }
+
+    function checkAnswerWrapper() {
+        const inputElement = document.getElementById('answer-input');
+        const inputValue = inputElement.value.trim();
+        const userAnswer = parseFloat(inputValue);
+
+        if (inputValue === '' || isNaN(userAnswer)) {
+            document.getElementById('feedback').textContent = '❗ 請輸入一個有效的數值！';
+            document.getElementById('feedback').className = 'incorrect';
+            return;
+        }
+        checkAnswer(userAnswer);
+    }
+
+
+    function checkAnswer(userAnswer) {
+        const feedbackElement = document.getElementById('feedback');
+        const checkButton = document.getElementById('check-btn');
+
+        totalCount++;
+
+        let isCorrect;
+        let displayedAnswer;
+        
+        if (currentCoeffs.type === 'integer') {
+            isCorrect = Math.abs(userAnswer - correctAnswer) < 0.0001;
+            displayedAnswer = correctAnswer;
+        } else {
+            // 分數模式 (答案是整數)
+            isCorrect = Math.abs(userAnswer - currentCoeffs.type === 'fractional' ? correctAnswer.value : correctAnswer) < 0.0001;
+            displayedAnswer = currentCoeffs.type === 'fractional' ? correctAnswer.value : correctAnswer;
+        }
+
+        if (isCorrect) {
+            correctCount++;
+            feedbackElement.textContent = '✅ 正確！答對了！';
+            feedbackElement.className = 'correct';
+            timeoutId = setTimeout(generateQuestion, 2000); 
+        } else {
+            // 修正 4: 移除 $x$ 符號
+            feedbackElement.innerHTML = `❌ 錯誤！您輸入的值是 x = ${userAnswer}。`;
+            feedbackElement.className = 'incorrect';
+            
+            let solutionSteps;
+            if (currentCoeffs.type === 'integer') {
+                solutionSteps = generateIntegerSolutionSteps(
+                    currentCoeffs.a, currentCoeffs.b, currentCoeffs.c, currentCoeffs.d, displayedAnswer
+                );
+            } else {
+                solutionSteps = generateFractionalSolutionSteps(
+                    currentCoeffs, correctAnswer
+                );
+            }
+            
+            feedbackElement.innerHTML += `<div class="solution-box">${solutionSteps}</div>`;
+
+            checkButton.textContent = '繼續下一題';
+            checkButton.onclick = function() { generateQuestion(); };
+        }
+
+        document.getElementById('correct-count').textContent = correctCount;
+        document.getElementById('total-count').textContent = totalCount;
+        document.getElementById('answer-input').disabled = true;
+        checkButton.disabled = false;
+    }
+    
+    // 確保在所有元素加載完畢後才註冊事件監聽器
+    window.addEventListener('load', function() {
+        const answerInput = document.getElementById('answer-input');
+        if (answerInput) {
+            answerInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !answerInput.disabled && document.getElementById('check-btn').textContent === '檢查答案') {
+                    checkAnswerWrapper();
+                }
+            });
+        }
+        generateQuestion();
+    });
+
+</script>
+
+</body>
+</html>
