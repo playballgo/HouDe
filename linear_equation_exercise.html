@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>一元一次方程式練習 (固定整數解/多分數係數)</title>
+    <title>一元一次方程式練習 (最終修正版)</title>
     <style>
         /* --- 視覺樣式設定 --- (保持不變) */
         body { 
@@ -32,7 +32,7 @@
             margin-bottom: 30px; 
             font-size: 2em;
         }
-        .controls, .question-area, .result-area { 
+        .controls, .question-area { 
             margin-bottom: 25px; 
             padding: 20px; 
             border: 1px solid #cce5ff; 
@@ -107,7 +107,7 @@
         }
         .correct { color: #28a745; }
         .incorrect { color: #dc3545; }
-        .score-board { 
+        .score-board { /* 雖然此區塊已移除，但保留樣式以防萬一 */
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
@@ -160,21 +160,14 @@
         <div id="question">點擊「開始/下一題」按鈕開始練習</div>
         
         <div style="margin-top: 20px;">
-            <input type="text" id="answer-input" placeholder="請輸入 x 的值" disabled>
+            <input type="text" id="answer-input" placeholder="請輸入 x 的值 (可輸入分數 N/M)" disabled>
             <button onclick="checkAnswerWrapper()" disabled id="check-btn">檢查答案</button>
         </div>
         
         <div id="feedback"></div>
     </div>
-
-    <div class="result-area">
-        <h2>📊 成績統計：</h2>
-        <div class="score-board">
-            <span>✅ 答對題數：<span id="correct-count">0</span></span>
-            <span>總題數：<span id="total-count">0</span></span>
-        </div>
+    
     </div>
-</div>
 
 <script>
     // --- JS 常數和輔助函數 ---
@@ -182,13 +175,13 @@
     const MAX_COEFF = 50;
     const MIN_DEN = 2; // 分母最小值
     const MAX_DEN = 10; // 分母最大值
+    const EPSILON = 0.0001; // 浮點數容忍度
     
-    let correctAnswer = null; 
-    let correctCount = 0;
-    let totalCount = 0;
+    let correctAnswer = null; // 儲存正確答案物件 {num: N, den: M}
+    let currentCoeffs = { type: 'integer' }; 
     let timeoutId = null; 
     
-    let currentCoeffs = { type: 'integer' }; 
+    // 移除未使用的計數器變數 correctCount 和 totalCount
 
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -198,7 +191,7 @@
      * 輔助函數：求最大公因數 (GCD)
      */
     function gcd(a, b) {
-        return b === 0 ? a : gcd(b, a % b);
+        return b === 0 ? Math.abs(a) : gcd(b, a % b);
     }
     
     /**
@@ -210,39 +203,59 @@
     }
     
     /**
+     * 輔助函數：將分數約分並標準化符號 (標準化為分母為正)
+     * @param {number} num 分子
+     * @param {number} den 分母
+     * @returns {{num: number, den: number}} 約分後的結果
+     */
+    function simplifyFraction(num, den) {
+        if (den === 0) return { num: num, den: 0 }; 
+        if (num === 0) return { num: 0, den: 1 };
+        
+        const commonDivisor = gcd(num, den);
+        let simplifiedNum = num / commonDivisor;
+        let simplifiedDen = den / commonDivisor;
+
+        // 確保分母是正數
+        if (simplifiedDen < 0) {
+            simplifiedNum = -simplifiedNum;
+            simplifiedDen = -simplifiedDen;
+        }
+
+        return { num: simplifiedNum, den: simplifiedDen };
+    }
+
+    /**
      * 輔助函數：格式化一個分數 (純文字 (N/M) 格式)
      * @param {number} num 分子
      * @param {number} den 分母
-     * @param {boolean} includeParentheses 是否包含括號
-     * @param {boolean} alwaysShowSign 如果是正數是否顯示 '+' 號
+     * @param {boolean} includeParentheses 是否包含括號 (用於 x 係數)
+     * @param {boolean} alwaysShowSign 如果是正數是否顯示 '+' 號 (用於常數項)
      */
     function formatFraction(num, den, includeParentheses = true, alwaysShowSign = false) {
-        if (den === 1) {
-            if (num >= 0 && alwaysShowSign) return `+ ${num}`;
-            return num.toString();
-        }
+        const { num: simplifiedNum, den: simplifiedDen } = simplifyFraction(num, den);
         
-        const isNegative = num * den < 0;
-        const sign = isNegative ? '-' : (alwaysShowSign ? '+' : '');
-        const absNum = Math.abs(num);
-        const absDen = Math.abs(den);
-
-        // 檢查是否能約分
-        const commonDivisor = gcd(absNum, absDen);
-        const simplifiedNum = absNum / commonDivisor;
-        const simplifiedDen = absDen / commonDivisor;
-
         if (simplifiedDen === 1) {
-             const simplifiedResult = simplifiedNum;
-             if (isNegative) return `-${simplifiedResult}`;
-             if (alwaysShowSign) return ` + ${simplifiedResult}`;
-             return simplifiedResult.toString();
+             if (simplifiedNum >= 0 && alwaysShowSign) return ` + ${simplifiedNum}`;
+             return simplifiedNum.toString();
         }
 
-        const fractionString = `${simplifiedNum}/${simplifiedDen}`;
-        const formattedSign = sign.trim() === '+' ? ' + ' : sign;
+        const fractionString = `${Math.abs(simplifiedNum)}/${simplifiedDen}`;
+        
+        let sign = '';
+        if (simplifiedNum < 0) {
+            sign = '-';
+        } else if (alwaysShowSign) {
+            sign = ' + ';
+        }
 
-        return `${formattedSign}${includeParentheses ? '(' : ''}${fractionString}${includeParentheses ? ')' : ''}`;
+        if (!includeParentheses) {
+            if (sign.trim() === '+') return ` + ${fractionString}`;
+            if (sign === '-') return ` - ${fractionString}`;
+            return fractionString;
+        }
+
+        return `${sign}(${fractionString})`;
     }
 
     /**
@@ -289,7 +302,7 @@
         d = (a - c) * xAnswer + b;
 
         currentCoeffs = { a, b, c, d, type: 'integer' };
-        correctAnswer = xAnswer;
+        correctAnswer = { num: xAnswer, den: 1 }; // 儲存為分數形式方便驗證
         
         const leftSide = formatIntegerExpression(a, b, 'x');
         const rightSide = formatIntegerExpression(c, d, 'x');
@@ -300,81 +313,109 @@
         const xCoeff = a - c; 
         const constTerm = d - b;
         const originalEq = `${formatIntegerExpression(a, b, 'x')} = ${formatIntegerExpression(c, d, 'x')}`;
+        
+        const finalSol = simplifyFraction(constTerm, xCoeff);
 
         let steps = '<h3>解題步驟：</h3><ol>';
         steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
 
-        const leftXMove = `${a}x ${c >= 0 ? '-' : '+'} ${Math.abs(c)}x`;
+        // 處理移項的 X 項 (修正: 避免 - 0x)
+        let leftXMove = `${a}x`;
+        if (c !== 0) {
+             leftXMove += ` ${c >= 0 ? '-' : '+'} ${Math.abs(c)}x`;
+        }
+        
         const rightConstMove = `${d} ${b >= 0 ? '-' : '+'} ${Math.abs(b)}`;
         steps += `<li>將含有 x 的項移到等號左邊，常數項移到等號右邊：<br><span class="step-equation">${leftXMove} = ${rightConstMove}</span></li>`;
 
         const leftSideMove = formatIntegerExpression(xCoeff, 0, 'x');
         steps += `<li>合併同類項： <span class="step-equation">${leftSideMove} = ${constTerm}</span></li>`;
 
-        let finalFraction;
-        if (xCoeff === 1) {
-            finalFraction = `${constTerm}`;
-        } else if (xCoeff === -1) {
-             finalFraction = `-${constTerm}`;
+        const finalFraction = `(${constTerm}) / (${xCoeff})`;
+        steps += `<li>將兩邊同除以 x 的係數 (${xCoeff})： x = ${finalFraction} </li>`;
+
+        // 步驟 5：約分或顯示最終結果
+        if (finalSol.den !== 1) {
+             steps += `<li>約分： x = ${finalSol.num}/${finalSol.den}</li>`;
         } else {
-            finalFraction = `(${constTerm}) / (${xCoeff})`;
+             steps += `<li>最終結果： x = ${finalSol.num}</li>`;
         }
         
-        steps += `<li>將兩邊同除以 x 的係數 (${xCoeff})： x = ${finalFraction} </li>`;
-        steps += `<li>最終結果： x = ${xAnswer}</li>`;
         steps += '</ol>';
         
         return steps;
     }
     
-    // --- 分數題型邏輯 (晉階 - 固定整數解) ---
+    // --- 分數題型邏輯 (晉階 - 允許分數解) ---
+    
+    // 新增：分數加減乘除的輔助函數，用於精確計算
+    function addFrac(f1, f2) {
+        const num = f1.num * f2.den + f2.num * f1.den;
+        const den = f1.den * f2.den;
+        return simplifyFraction(num, den);
+    }
+
+    function subtractFrac(f1, f2) {
+        const num = f1.num * f2.den - f2.num * f1.den;
+        const den = f1.den * f2.den;
+        return simplifyFraction(num, den);
+    }
+
+    function multiplyFrac(f1, f2) {
+        const num = f1.num * f2.num;
+        const den = f1.den * f2.den;
+        return simplifyFraction(num, den);
+    }
     
     function generateFractionalQuestion() {
-        // 方程式形式: (A/D_A)x + B/D_B = (C/D_C)x + E/D_E
-        
-        // 1. 生成目標整數答案 x_sol
-        const x_sol = getRandomInt(-10, 10);
-        if (x_sol === 0) return generateFractionalQuestion();
-
-        // 2. 生成係數和分母
-        let A_num, A_den, C_num, C_den, B_num, B_den, E_den;
+        // 1. 生成係數和分母 (以分數形式儲存)
+        let A_frac, C_frac, B_frac, E_den;
 
         do {
-            A_num = getRandomInt(MIN_COEFF, MAX_COEFF);
-            A_den = getRandomInt(MIN_DEN, MAX_DEN);
-            C_num = getRandomInt(MIN_COEFF, MAX_COEFF);
-            C_den = getRandomInt(MIN_DEN, MAX_DEN);
-        } while (A_num / A_den === C_num / C_den); // 確保 x 係數不相等
+            A_frac = simplifyFraction(getRandomInt(MIN_COEFF, MAX_COEFF), getRandomInt(MIN_DEN, MAX_DEN));
+            C_frac = simplifyFraction(getRandomInt(MIN_COEFF, MAX_COEFF), getRandomInt(MIN_DEN, MAX_DEN));
+        } while (A_frac.num * C_frac.den === C_frac.num * A_frac.den); 
 
-        B_num = getRandomInt(MIN_COEFF, MAX_COEFF);
-        B_den = getRandomInt(1, MAX_DEN); 
+        B_frac = simplifyFraction(getRandomInt(MIN_COEFF, MAX_COEFF), getRandomInt(1, MAX_DEN));
         E_den = getRandomInt(1, MAX_DEN);
         
-        // 3. 反推 E_num 確保答案是 x_sol
-        // (A/D_A)x + B/D_B = (C/D_C)x + E/D_E
+        // 2. 生成最終答案 (允許分數解)
+        let x_sol = simplifyFraction(getRandomInt(-20, 20), getRandomInt(1, MAX_DEN));
+        if (x_sol.num === 0) x_sol = { num: 1, den: 1 };
+        
+        // 3. 反推 E_num (使用分數運算)
         // E/D_E = (A/D_A - C/D_C)x + B/D_B
+        const x_coeff_diff = subtractFrac(A_frac, C_frac);
+        const x_term = multiplyFrac(x_coeff_diff, x_sol);
+        const E_val_frac = addFrac(x_term, B_frac);
         
-        const x_coeff_term = (A_num / A_den) - (C_num / C_den);
-        const B_val = B_num / B_den;
-        const E_val = x_coeff_term * x_sol + B_val;
+        // E_num = E_val_frac.num * E_den / E_val_frac.den
+        const E_num_precise = E_val_frac.num * E_den;
+        const E_den_precise = E_val_frac.den;
         
-        // E_num / E_den = E_val  => E_num = E_val * E_den
-        const E_num = Math.round(E_val * E_den);
+        // E_num 必須是一個整數
+        const E_num = Math.round(E_num_precise / E_den_precise);
         
-        // 4. 確保至少有一個分數常數項
-        if (B_den === 1 && E_den === 1) {
+        // 4. 確保至少有一個分數係數，且常數項至少有一個分母 > 1
+        if ((A_frac.den === 1 && C_frac.den === 1) || (B_frac.den === 1 && E_den === 1)) {
             return generateFractionalQuestion(); 
         }
         
-        // 5. 儲存係數
-        currentCoeffs = { A_num, A_den, B_num, B_den, C_num, C_den, E_num, E_den, type: 'fractional' };
-        correctAnswer = { value: x_sol }; // 答案是整數，但統一用物件儲存
+        // 5. 儲存係數和答案
+        currentCoeffs = { 
+            A_num: A_frac.num, A_den: A_frac.den, 
+            C_num: C_frac.num, C_den: C_frac.den,
+            B_num: B_frac.num, B_den: B_frac.den, 
+            E_num: E_num, E_den: E_den,
+            type: 'fractional'
+        };
+        correctAnswer = x_sol; 
 
         // 6. 格式化題目字串
-        const A_term = `${formatFraction(A_num, A_den)}x`;
-        const B_term = B_num === 0 ? '' : formatFraction(B_num, B_den, false, true);
-        const C_term = `${formatFraction(C_num, C_den)}x`;
-        const E_term = E_num === 0 ? '' : formatFraction(E_num, E_den, false, true);
+        const A_term = `${formatFraction(A_frac.num, A_frac.den)}x`;
+        const B_term = B_frac.num === 0 ? '' : formatFraction(B_frac.num, B_frac.den, false, true);
+        const C_term = `${formatFraction(C_frac.num, C_frac.den)}x`;
+        const E_term = currentCoeffs.E_num === 0 ? '' : formatFraction(currentCoeffs.E_num, currentCoeffs.E_den, false, true);
 
         let leftSide = (A_term + B_term).trim();
         if (leftSide.startsWith('+')) leftSide = leftSide.substring(1).trim();
@@ -387,13 +428,12 @@
 
     function generateFractionalSolutionSteps(coeffs, xAnswer) {
         const { A_num, A_den, B_num, B_den, C_num, C_den, E_num, E_den } = coeffs;
-        const x_sol = xAnswer.value;
 
-        // 找出所有分母的 LCM (修正 1: 僅計算實際分母的 LCM)
+        // 1. LCM 
         const allDen = [A_den, B_den, C_den, E_den].filter(d => d !== 1);
         let commonDen = 1;
         if (allDen.length > 0) {
-            commonDen = allDen.reduce((acc, val) => lcm(acc, val), 1);
+            commonDen = allDen.reduce((acc, val) => lcm(acc, val));
         }
 
         // 原始題目格式化
@@ -409,7 +449,6 @@
         const originalEq = `${leftSide} = ${rightSide}`;
 
         let steps = '<h3>解題步驟：</h3><ol>';
-        // 1. 原式
         steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
 
         // 2. 清除分母 (通分)
@@ -432,26 +471,49 @@
         steps += `<li>將含有 x 的項移到左邊，常數項移到右邊：<br><span class="step-equation">${combinedX} = ${finalConst}</span></li>`;
 
         // 4. 求解 x
-        const finalFraction = `${finalConst} / ${finalXCoeff}`;
-        // 修正 4: 移除 $ 符號
+        const finalFraction = `(${finalConst}) / (${finalXCoeff})`;
         steps += `<li>將兩邊同除以 x 的係數 (${finalXCoeff})： x = ${finalFraction} </li>`;
 
-        // 5. 約分與最終結果
-        const final_N = finalConst / gcd(Math.abs(finalConst), Math.abs(finalXCoeff));
-        const final_M = finalXCoeff / gcd(Math.abs(finalConst), Math.abs(finalXCoeff));
+        // 5. 約分並顯示最終結果 (此為最後一步)
+        const simplifiedResultString = xAnswer.den === 1 ? xAnswer.num.toString() : `${xAnswer.num}/${xAnswer.den}`;
         
-        // 修正 4: 移除 $ 符號
-        if (final_M !== 1) {
-             steps += `<li>約分： x = ${formatFraction(final_N, final_M, false)}</li>`;
-        }
+        steps += `<li>約分： x = ${simplifiedResultString}</li>`;
         
-        steps += `<li>最終結果： x = ${x_sol}</li>`;
         steps += '</ol>';
         
         return steps;
     }
 
     // --- 主要控制函數 ---
+
+    /**
+     * 輔助函數：解析輸入值，可接受分數 N/M
+     * @param {string} inputValue 原始輸入字串
+     * @returns {{num: number, den: number}} 約分後的結果
+     */
+    function parseInput(inputValue) {
+        inputValue = inputValue.trim();
+        
+        // 1. 檢查是否是分數格式 a/b
+        const match = inputValue.match(/^(-?\d+)\/(-?\d+)$/);
+        if (match) {
+            const num = parseInt(match[1]);
+            const den = parseInt(match[2]);
+            if (den === 0) return { num: 0, den: 0 }; // 無效輸入
+            return simplifyFraction(num, den);
+        }
+        
+        // 2. 嘗試解析為整數或浮點數
+        const value = parseFloat(inputValue);
+        if (!isNaN(value) && isFinite(value)) {
+            // 檢查是否為整數
+            if (Math.abs(value - Math.round(value)) < EPSILON) {
+                 return { num: Math.round(value), den: 1 };
+            }
+        }
+        
+        return { num: 0, den: 0 }; // 無法解析
+    }
 
     function generateQuestion() {
         if (timeoutId) clearTimeout(timeoutId);
@@ -480,49 +542,43 @@
     function checkAnswerWrapper() {
         const inputElement = document.getElementById('answer-input');
         const inputValue = inputElement.value.trim();
-        const userAnswer = parseFloat(inputValue);
+        const userAnswerFrac = parseInput(inputValue); // 取得約分後分數 {num: N, den: M}
 
-        if (inputValue === '' || isNaN(userAnswer)) {
-            document.getElementById('feedback').textContent = '❗ 請輸入一個有效的數值！';
+        // 檢查是否是有效輸入
+        if (userAnswerFrac.den === 0 || (userAnswerFrac.num === 0 && userAnswerFrac.den === 0)) {
+            document.getElementById('feedback').textContent = '❗ 請輸入一個有效的數值或分數 (N/M 格式)！';
             document.getElementById('feedback').className = 'incorrect';
             return;
         }
-        checkAnswer(userAnswer);
+        checkAnswer(userAnswerFrac, inputValue);
     }
 
 
-    function checkAnswer(userAnswer) {
+    function checkAnswer(userAnswerFrac, rawInput) {
         const feedbackElement = document.getElementById('feedback');
         const checkButton = document.getElementById('check-btn');
 
-        totalCount++;
+        // 移除 totalCount++
 
-        let isCorrect;
-        let displayedAnswer;
-        
-        if (currentCoeffs.type === 'integer') {
-            isCorrect = Math.abs(userAnswer - correctAnswer) < 0.0001;
-            displayedAnswer = correctAnswer;
-        } else {
-            // 分數模式 (答案是整數)
-            isCorrect = Math.abs(userAnswer - currentCoeffs.type === 'fractional' ? correctAnswer.value : correctAnswer) < 0.0001;
-            displayedAnswer = currentCoeffs.type === 'fractional' ? correctAnswer.value : correctAnswer;
-        }
+        // 核心修正 1: 比較約分後的分數 (N/M) 是否相等
+        const isCorrect = (userAnswerFrac.num === correctAnswer.num) && (userAnswerFrac.den === correctAnswer.den);
 
         if (isCorrect) {
-            correctCount++;
+            // 移除 correctCount++
             feedbackElement.textContent = '✅ 正確！答對了！';
             feedbackElement.className = 'correct';
             timeoutId = setTimeout(generateQuestion, 2000); 
         } else {
-            // 修正 4: 移除 $x$ 符號
-            feedbackElement.innerHTML = `❌ 錯誤！您輸入的值是 x = ${userAnswer}。`;
+            // 顯示正確答案
+            const correctDisplay = correctAnswer.den === 1 ? correctAnswer.num.toString() : `${correctAnswer.num}/${correctAnswer.den}`;
+            
+            feedbackElement.innerHTML = `❌ 錯誤！您輸入的值是 x = ${rawInput}。正確答案是 x = ${correctDisplay}。`;
             feedbackElement.className = 'incorrect';
             
             let solutionSteps;
             if (currentCoeffs.type === 'integer') {
                 solutionSteps = generateIntegerSolutionSteps(
-                    currentCoeffs.a, currentCoeffs.b, currentCoeffs.c, currentCoeffs.d, displayedAnswer
+                    currentCoeffs.a, currentCoeffs.b, currentCoeffs.c, currentCoeffs.d, correctAnswer
                 );
             } else {
                 solutionSteps = generateFractionalSolutionSteps(
@@ -536,8 +592,7 @@
             checkButton.onclick = function() { generateQuestion(); };
         }
 
-        document.getElementById('correct-count').textContent = correctCount;
-        document.getElementById('total-count').textContent = totalCount;
+        // 移除更新成績顯示的程式碼
         document.getElementById('answer-input').disabled = true;
         checkButton.disabled = false;
     }
