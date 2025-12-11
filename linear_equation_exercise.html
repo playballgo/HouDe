@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>一元一次方程式練習 (最終修正版)</title>
+    <title>一元一次方程式練習 (最終修正版 - 擴展題型)</title>
     <style>
-        /* --- 視覺樣式設定 --- (保持不變) */
+        /* --- 視覺樣式設定 --- */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             padding: 20px; 
@@ -16,7 +16,7 @@
             min-height: 100vh;
         }
         .container { 
-            max-width: 650px; 
+            max-width: 700px; /* 略微加大寬度以容納按鈕 */
             width: 100%;
             margin-top: 20px;
             background: #ffffff; 
@@ -40,28 +40,21 @@
             background-color: #f8faff; 
         }
         .controls { 
-            display: flex; 
-            gap: 20px; 
-            align-items: center; 
-            justify-content: space-between;
+            display: flex;
+            flex-direction: column; 
+            align-items: stretch;
         }
         .controls-group {
             display: flex;
-            gap: 25px;
-            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .controls label { 
             display: block; 
             margin-bottom: 5px; 
             font-weight: bold; 
             color: #333; 
-        }
-        .controls input[type="checkbox"] { 
-            width: 20px; 
-            height: 20px;
-            cursor: pointer;
-            vertical-align: middle;
-            margin-right: 5px;
         }
         button { 
             background-color: #007bff; 
@@ -79,6 +72,24 @@
         button:active {
             transform: scale(0.98);
         }
+        /* 新增：題型按鈕樣式 */
+        .mode-btn {
+            background-color: #6c757d; /* 灰色 */
+            padding: 8px 15px;
+            transition: background-color 0.3s;
+            flex-grow: 1;
+            min-width: 150px;
+        }
+        .mode-btn:hover {
+            background-color: #5a6268;
+        }
+        .selected-mode {
+            background-color: #007bff; /* 藍色 */
+        }
+        .selected-mode:hover {
+            background-color: #0056b3;
+        }
+        
         .question-area {
             text-align: center;
         }
@@ -107,13 +118,6 @@
         }
         .correct { color: #28a745; }
         .incorrect { color: #dc3545; }
-        .score-board { /* 雖然此區塊已移除，但保留樣式以防萬一 */
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            font-size: 1.2em; 
-            font-weight: 600;
-        }
         .solution-box {
             margin-top:15px; 
             text-align: left; 
@@ -123,6 +127,7 @@
             border: 1px solid #dc3545;
             font-size: 1em;
             line-height: 1.6;
+            overflow-x: auto; /* 防止解題步驟過長溢出 */
         }
         .solution-box ol {
             padding-left: 20px;
@@ -134,6 +139,7 @@
             margin: 5px 0;
             padding: 3px 0;
             font-weight: bold;
+            color: #1a2a44;
         }
     </style>
 </head>
@@ -143,16 +149,13 @@
     <h1>📝 國中數學 一元一次方程式練習</h1>
 
     <div class="controls">
+        <div style="font-weight: bold; margin-bottom: 10px; color: #1a2a44; text-align: center;">選擇題型難度：</div>
         <div class="controls-group">
-            <div>
-                <div style="font-weight: bold; padding: 5px 0;"></div>
-            </div>
-            <div style="margin-left: 20px;">
-                <label for="advanced-mode">晉階題型</label>
-                <input type="checkbox" id="advanced-mode" onchange="generateQuestion()">
-            </div>
+            <button id="mode-integer" onclick="setMode('integer')" class="mode-btn">基礎題型 (整數解)</button>
+            <button id="mode-fractional" onclick="setMode('fractional')" class="mode-btn">晉階題型 (分數係數)</button>
+            <button id="mode-distribution" onclick="setMode('distribution')" class="mode-btn">晉階題型 (分配律、括號)</button>
         </div>
-        <button onclick="generateQuestion()">開始/下一題</button>
+        <button onclick="generateQuestion()" style="margin-top: 20px;">開始/下一題</button>
     </div>
 
     <div class="question-area">
@@ -175,13 +178,13 @@
     const MAX_COEFF = 50;
     const MIN_DEN = 2; // 分母最小值
     const MAX_DEN = 10; // 分母最大值
+    const DIST_COEFF = 10; // 分配律題型係數範圍
     const EPSILON = 0.0001; // 浮點數容忍度
     
     let correctAnswer = null; // 儲存正確答案物件 {num: N, den: M}
-    let currentCoeffs = { type: 'integer' }; 
-    let timeoutId = null; 
-    
-    // 移除未使用的計數器變數 correctCount 和 totalCount
+    let currentCoeffs = {};
+    let timeoutId = null;
+    let currentMode = 'integer'; // 追蹤當前模式
 
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -204,9 +207,6 @@
     
     /**
      * 輔助函數：將分數約分並標準化符號 (標準化為分母為正)
-     * @param {number} num 分子
-     * @param {number} den 分母
-     * @returns {{num: number, den: number}} 約分後的結果
      */
     function simplifyFraction(num, den) {
         if (den === 0) return { num: num, den: 0 }; 
@@ -227,10 +227,6 @@
 
     /**
      * 輔助函數：格式化一個分數 (純文字 (N/M) 格式)
-     * @param {number} num 分子
-     * @param {number} den 分母
-     * @param {boolean} includeParentheses 是否包含括號 (用於 x 係數)
-     * @param {boolean} alwaysShowSign 如果是正數是否顯示 '+' 號 (用於常數項)
      */
     function formatFraction(num, den, includeParentheses = true, alwaysShowSign = false) {
         const { num: simplifiedNum, den: simplifiedDen } = simplifyFraction(num, den);
@@ -286,69 +282,7 @@
         return result.trim();
     }
     
-    // --- 整數題型邏輯 (基本) ---
-
-    function generateIntegerQuestion() {
-        let a, b, c, d;
-        let xAnswer;
-        
-        do {
-            a = getRandomInt(MIN_COEFF, MAX_COEFF);
-            c = getRandomInt(MIN_COEFF, MAX_COEFF);
-        } while (a === c || a === 0 && c === 0); 
-
-        xAnswer = getRandomInt(MIN_COEFF, MAX_COEFF);
-        b = getRandomInt(MIN_COEFF, MAX_COEFF);
-        d = (a - c) * xAnswer + b;
-
-        currentCoeffs = { a, b, c, d, type: 'integer' };
-        correctAnswer = { num: xAnswer, den: 1 }; // 儲存為分數形式方便驗證
-        
-        const leftSide = formatIntegerExpression(a, b, 'x');
-        const rightSide = formatIntegerExpression(c, d, 'x');
-        return `${leftSide} = ${rightSide}`;
-    }
-
-    function generateIntegerSolutionSteps(a, b, c, d, xAnswer) {
-        const xCoeff = a - c; 
-        const constTerm = d - b;
-        const originalEq = `${formatIntegerExpression(a, b, 'x')} = ${formatIntegerExpression(c, d, 'x')}`;
-        
-        const finalSol = simplifyFraction(constTerm, xCoeff);
-
-        let steps = '<h3>解題步驟：</h3><ol>';
-        steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
-
-        // 處理移項的 X 項 (修正: 避免 - 0x)
-        let leftXMove = `${a}x`;
-        if (c !== 0) {
-             leftXMove += ` ${c >= 0 ? '-' : '+'} ${Math.abs(c)}x`;
-        }
-        
-        const rightConstMove = `${d} ${b >= 0 ? '-' : '+'} ${Math.abs(b)}`;
-        steps += `<li>將含有 x 的項移到等號左邊，常數項移到等號右邊：<br><span class="step-equation">${leftXMove} = ${rightConstMove}</span></li>`;
-
-        const leftSideMove = formatIntegerExpression(xCoeff, 0, 'x');
-        steps += `<li>合併同類項： <span class="step-equation">${leftSideMove} = ${constTerm}</span></li>`;
-
-        const finalFraction = `(${constTerm}) / (${xCoeff})`;
-        steps += `<li>將兩邊同除以 x 的係數 (${xCoeff})： x = ${finalFraction} </li>`;
-
-        // 步驟 5：約分或顯示最終結果
-        if (finalSol.den !== 1) {
-             steps += `<li>約分： x = ${finalSol.num}/${finalSol.den}</li>`;
-        } else {
-             steps += `<li>最終結果： x = ${finalSol.num}</li>`;
-        }
-        
-        steps += '</ol>';
-        
-        return steps;
-    }
-    
-    // --- 分數題型邏輯 (晉階 - 允許分數解) ---
-    
-    // 新增：分數加減乘除的輔助函數，用於精確計算
+    // --- 分數運算輔助函數 (用於精確計算) ---
     function addFrac(f1, f2) {
         const num = f1.num * f2.den + f2.num * f1.den;
         const den = f1.den * f2.den;
@@ -366,39 +300,106 @@
         const den = f1.den * f2.den;
         return simplifyFraction(num, den);
     }
+
+    // --- 題型模式控制 ---
+    function setMode(mode) {
+        currentMode = mode;
+        // 更新按鈕樣式
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('selected-mode');
+        });
+        document.getElementById(`mode-${mode}`).classList.add('selected-mode');
+        
+        // 立即生成新模式下的第一題
+        generateQuestion();
+    }
+
+    // --- 1. 整數題型邏輯 (基礎) ---
+
+    function generateIntegerQuestion() {
+        let a, b, c, d;
+        let xAnswer;
+        
+        do {
+            a = getRandomInt(MIN_COEFF, MAX_COEFF);
+            c = getRandomInt(MIN_COEFF, MAX_COEFF);
+        } while (a === c || a === 0 && c === 0); 
+
+        xAnswer = getRandomInt(MIN_COEFF, MAX_COEFF);
+        b = getRandomInt(MIN_COEFF, MAX_COEFF);
+        d = (a - c) * xAnswer + b; // 反推 d
+
+        currentCoeffs = { a, b, c, d, type: 'integer' };
+        correctAnswer = { num: xAnswer, den: 1 }; 
+        
+        const leftSide = formatIntegerExpression(a, b, 'x');
+        const rightSide = formatIntegerExpression(c, d, 'x');
+        return `${leftSide} = ${rightSide}`;
+    }
+
+    function generateIntegerSolutionSteps(a, b, c, d, xAnswer) {
+        const xCoeff = a - c; 
+        const constTerm = d - b;
+        const originalEq = `${formatIntegerExpression(a, b, 'x')} = ${formatIntegerExpression(c, d, 'x')}`;
+        
+        const finalSol = simplifyFraction(constTerm, xCoeff);
+
+        let steps = '<h3>解題步驟：</h3><ol>';
+        steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
+
+        let leftXMove = `${a}x`;
+        if (c !== 0) {
+             leftXMove += ` ${c >= 0 ? '-' : '+'} ${Math.abs(c)}x`;
+        }
+        
+        const rightConstMove = `${d} ${b >= 0 ? '-' : '+'} ${Math.abs(b)}`;
+        steps += `<li>將含有 x 的項移到等號左邊，常數項移到等號右邊：<br><span class="step-equation">${leftXMove} = ${rightConstMove}</span></li>`;
+
+        const leftSideMove = formatIntegerExpression(xCoeff, 0, 'x');
+        steps += `<li>合併同類項： <span class="step-equation">${leftSideMove} = ${constTerm}</span></li>`;
+
+        const finalFraction = `(${constTerm}) / (${xCoeff})`;
+        steps += `<li>將兩邊同除以 x 的係數 (${xCoeff})： x = ${finalFraction} </li>`;
+
+        if (finalSol.den !== 1) {
+             steps += `<li>約分： x = ${finalSol.num}/${finalSol.den}</li>`;
+        } else {
+             steps += `<li>最終結果： x = ${finalSol.num}</li>`;
+        }
+        
+        steps += '</ol>';
+        
+        return steps;
+    }
+    
+    // --- 2. 分數題型邏輯 (晉階 - 修正精確性問題) ---
     
     function generateFractionalQuestion() {
-        // 1. 生成係數和分母 (以分數形式儲存)
-        let A_frac, C_frac, B_frac, E_den;
+        // 1. 生成所有分數係數 (A/D_A)x + B/D_B = C/D_C x + E/D_E
+        let A_frac, C_frac, B_frac, E_frac; 
+        let x_sol;
 
         do {
+            // 確保 x 係數不相等
             A_frac = simplifyFraction(getRandomInt(MIN_COEFF, MAX_COEFF), getRandomInt(MIN_DEN, MAX_DEN));
             C_frac = simplifyFraction(getRandomInt(MIN_COEFF, MAX_COEFF), getRandomInt(MIN_DEN, MAX_DEN));
         } while (A_frac.num * C_frac.den === C_frac.num * A_frac.den); 
 
+        // 生成常數項 B/D_B 和目標答案 x_sol
         B_frac = simplifyFraction(getRandomInt(MIN_COEFF, MAX_COEFF), getRandomInt(1, MAX_DEN));
-        E_den = getRandomInt(1, MAX_DEN);
+        x_sol = simplifyFraction(getRandomInt(-10, 10), getRandomInt(1, MAX_DEN));
+        if (x_sol.num === 0) x_sol = { num: 1, den: 1 }; // 避免 x=0 
+
+        // 3. 反推 E_frac (確保精確)
+        // E_frac = (A_frac - C_frac) * x_sol + B_frac
         
-        // 2. 生成最終答案 (允許分數解)
-        let x_sol = simplifyFraction(getRandomInt(-20, 20), getRandomInt(1, MAX_DEN));
-        if (x_sol.num === 0) x_sol = { num: 1, den: 1 };
+        const x_coeff_diff = subtractFrac(A_frac, C_frac); // (A/D_A - C/D_C)
+        const x_term = multiplyFrac(x_coeff_diff, x_sol);  // (A/D_A - C/D_C)x_sol
+        E_frac = addFrac(x_term, B_frac);                  // ... + B/D_B
         
-        // 3. 反推 E_num (使用分數運算)
-        // E/D_E = (A/D_A - C/D_C)x + B/D_B
-        const x_coeff_diff = subtractFrac(A_frac, C_frac);
-        const x_term = multiplyFrac(x_coeff_diff, x_sol);
-        const E_val_frac = addFrac(x_term, B_frac);
-        
-        // E_num = E_val_frac.num * E_den / E_val_frac.den
-        const E_num_precise = E_val_frac.num * E_den;
-        const E_den_precise = E_val_frac.den;
-        
-        // E_num 必須是一個整數
-        const E_num = Math.round(E_num_precise / E_den_precise);
-        
-        // 4. 確保至少有一個分數係數，且常數項至少有一個分母 > 1
-        if ((A_frac.den === 1 && C_frac.den === 1) || (B_frac.den === 1 && E_den === 1)) {
-            return generateFractionalQuestion(); 
+        // 4. 確保至少有一個分數係數
+        if (A_frac.den === 1 && C_frac.den === 1 && B_frac.den === 1 && E_frac.den === 1) {
+             return generateFractionalQuestion(); 
         }
         
         // 5. 儲存係數和答案
@@ -406,16 +407,16 @@
             A_num: A_frac.num, A_den: A_frac.den, 
             C_num: C_frac.num, C_den: C_frac.den,
             B_num: B_frac.num, B_den: B_frac.den, 
-            E_num: E_num, E_den: E_den,
+            E_num: E_frac.num, E_den: E_frac.den, // 直接使用分數形式的分子/分母
             type: 'fractional'
         };
-        correctAnswer = x_sol; 
+        correctAnswer = x_sol; // 精確的答案分數
 
         // 6. 格式化題目字串
-        const A_term = `${formatFraction(A_frac.num, A_frac.den)}x`;
+        const A_term = `${formatFraction(A_frac.num, A_frac.den, true)}x`;
         const B_term = B_frac.num === 0 ? '' : formatFraction(B_frac.num, B_frac.den, false, true);
-        const C_term = `${formatFraction(C_frac.num, C_frac.den)}x`;
-        const E_term = currentCoeffs.E_num === 0 ? '' : formatFraction(currentCoeffs.E_num, currentCoeffs.E_den, false, true);
+        const C_term = `${formatFraction(C_frac.num, C_frac.den, true)}x`;
+        const E_term = E_frac.num === 0 ? '' : formatFraction(E_frac.num, E_frac.den, false, true);
 
         let leftSide = (A_term + B_term).trim();
         if (leftSide.startsWith('+')) leftSide = leftSide.substring(1).trim();
@@ -436,17 +437,7 @@
             commonDen = allDen.reduce((acc, val) => lcm(acc, val));
         }
 
-        // 原始題目格式化
-        const A_term = `${formatFraction(A_num, A_den)}x`;
-        const B_term = B_num === 0 ? '' : formatFraction(B_num, B_den, false, true);
-        const C_term = `${formatFraction(C_num, C_den)}x`;
-        const E_term = E_num === 0 ? '' : formatFraction(E_num, E_den, false, true);
-
-        let leftSide = (A_term + B_term).trim();
-        if (leftSide.startsWith('+')) leftSide = leftSide.substring(1).trim();
-        let rightSide = (C_term + E_term).trim();
-        if (rightSide.startsWith('+')) rightSide = rightSide.substring(1).trim();
-        const originalEq = `${leftSide} = ${rightSide}`;
+        const originalEq = document.getElementById('question').textContent;
 
         let steps = '<h3>解題步驟：</h3><ol>';
         steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
@@ -457,8 +448,8 @@
         const C_new = C_num * (commonDen / C_den);
         const E_new = E_num * (commonDen / E_den);
 
-        const newLeft = `${A_new}x ${B_new >= 0 ? '+' : '-'} ${Math.abs(B_new)}`;
-        const newRight = `${C_new}x ${E_new >= 0 ? '+' : '-'} ${Math.abs(E_new)}`;
+        const newLeft = formatIntegerExpression(A_new, B_new, 'x');
+        const newRight = formatIntegerExpression(C_new, E_new, 'x');
 
         steps += `<li>兩邊同乘以所有分母的 LCM (最小公倍數) ${commonDen} (通分/清除分母)：<br><span class="step-equation">${newLeft} = ${newRight}</span></li>`;
         
@@ -466,19 +457,219 @@
         const finalXCoeff = A_new - C_new;
         const finalConst = E_new - B_new;
 
-        const combinedX = `${finalXCoeff}x`;
+        const combinedX = formatIntegerExpression(finalXCoeff, 0, 'x');
         
         steps += `<li>將含有 x 的項移到左邊，常數項移到右邊：<br><span class="step-equation">${combinedX} = ${finalConst}</span></li>`;
 
         // 4. 求解 x
-        const finalFraction = `(${finalConst}) / (${finalXCoeff})`;
-        steps += `<li>將兩邊同除以 x 的係數 (${finalXCoeff})： x = ${finalFraction} </li>`;
+        const resultFrac = simplifyFraction(finalConst, finalXCoeff); // 實時計算並約分
 
-        // 5. 約分並顯示最終結果 (此為最後一步)
-        const simplifiedResultString = xAnswer.den === 1 ? xAnswer.num.toString() : `${xAnswer.num}/${xAnswer.den}`;
+        const simplifiedResultString = resultFrac.den === 1 ? resultFrac.num.toString() : `${resultFrac.num}/${resultFrac.den}`;
         
-        steps += `<li>約分： x = ${simplifiedResultString}</li>`;
+        steps += `<li>將兩邊同除以 x 的係數 (${finalXCoeff})： x = ${finalConst}/${finalXCoeff} </li>`;
+        steps += `<li>約分： x = ${simplifiedResultString}</li>`; // 修正：現在此步驟的結果是基於精確計算的
         
+        steps += '</ol>';
+        
+        return steps;
+    }
+    
+    // --- 3. 分配律題型邏輯 (晉階 - 括號展開) ---
+
+    function formatDistributionTerm(a, b, c, variable, needParentheses = false) {
+        const internal = formatIntegerExpression(b, c, variable);
+        
+        let expression_string = '';
+        
+        if (b === 0 && c === 0) {
+            expression_string = '0';
+        } else {
+            expression_string = `(${internal})`;
+        }
+
+        if (a === 0) {
+            expression_string = '0';
+        } else if (a === 1) {
+        } else if (a === -1) {
+            expression_string = '-' + expression_string;
+        } else {
+            expression_string = a.toString() + expression_string;
+        }
+        
+        if (needParentheses) {
+            expression_string = `{${expression_string}}`;
+        }
+        
+        return {
+            x_coeff: a * b,
+            const_term: a * c,
+            expression_string: expression_string
+        };
+    }
+
+    function generateDistributionQuestion() {
+        let a, b, c, d, e, f, g, h, i, j, k, l;
+        let xAnswer;
+        
+        const range = DIST_COEFF;
+        
+        a = getRandomInt(-range, range);
+        b = getRandomInt(-range, range);
+        c = getRandomInt(-range, range);
+        d = getRandomInt(-range, range);
+        e = getRandomInt(-range, range);
+        f = getRandomInt(-range, range);
+        g = getRandomInt(-range, range);
+        h = getRandomInt(-range, range);
+
+        const useComplex = Math.random() < 0.5;
+        
+        if (useComplex) {
+            j = getRandomInt(-range, range);
+            k = getRandomInt(-range, range);
+            l = getRandomInt(-range, range);
+        } else {
+            j = 0; k = 0; l = 0;
+        }
+        
+        xAnswer = getRandomInt(-10, 10);
+        
+        const Left_X_Coeff = (a * b) + (d * e) + (d * j * k);
+        const Left_Const = (a * c) + (d * f) + (d * j * l);
+        const Right_X_Coeff = g * h;
+        
+        // 確保 x 係數不相等
+        if (Left_X_Coeff === Right_X_Coeff) {
+             return generateDistributionQuestion();
+        }
+
+        // 反推 i (常數項)
+        // Left_X_Coeff * xAnswer + Left_Const = Right_X_Coeff * xAnswer + g * i
+        const Left_Val = Left_X_Coeff * xAnswer + Left_Const;
+        const Right_Val_X = Right_X_Coeff * xAnswer;
+        
+        let target_g_i = Left_Val - Right_Val_X;
+        
+        if (g === 0) {
+            if (target_g_i !== 0) return generateDistributionQuestion();
+            i = getRandomInt(-range, range); 
+        } else {
+            if (target_g_i % g !== 0) return generateDistributionQuestion();
+            i = target_g_i / g;
+        }
+        
+        // 確保題目至少包含一個括號
+        if (Math.abs(a) <= 1 && Math.abs(d) <= 1 && Math.abs(g) <= 1) {
+            if (a !== 0 && b !== 0 && Math.abs(a) > 1 || 
+                d !== 0 && e !== 0 && Math.abs(d) > 1 || 
+                g !== 0 && h !== 0 && Math.abs(g) > 1) {
+            } else {
+                return generateDistributionQuestion(); 
+            }
+        }
+        
+        currentCoeffs = { a, b, c, d, e, f, g, h, i, j, k, l, useComplex, type: 'distribution' };
+        correctAnswer = { num: xAnswer, den: 1 };
+        
+        // 格式化題目字串
+        const term1 = formatDistributionTerm(a, b, c, 'x').expression_string;
+        
+        let term2 = '';
+        if (d !== 0) {
+            if (useComplex) {
+                const innerTerm1 = formatIntegerExpression(e, f, 'x');
+                const innerTerm2Obj = formatDistributionTerm(j, k, l, 'x');
+                
+                let innerContent = innerTerm1;
+                if (innerTerm2Obj.expression_string !== '0') {
+                    innerContent += innerTerm2Obj.expression_string.startsWith('-') ? ` ${innerTerm2Obj.expression_string}` : ` + ${innerTerm2Obj.expression_string}`;
+                }
+                
+                term2 = `${d !== 1 ? d.toString() : d === -1 ? '-' : ''}{${innerContent.trim()}}`;
+                if (term2.startsWith('-{')) term2 = '-'+term2.substring(2);
+                
+            } else {
+                term2 = formatDistributionTerm(d, e, f, 'x').expression_string;
+            }
+        }
+        
+        let leftSide = term1;
+        if (term2 !== '0' && term2 !== '') {
+            leftSide += term2.startsWith('-') ? ` ${term2}` : ` + ${term2}`;
+        }
+        
+        const term3 = formatDistributionTerm(g, h, i, 'x').expression_string;
+        let rightSide = term3;
+        
+        leftSide = leftSide.trim();
+        if (leftSide.startsWith('+')) leftSide = leftSide.substring(1).trim();
+
+        rightSide = rightSide.trim();
+        if (rightSide.startsWith('+')) rightSide = rightSide.substring(1).trim();
+        
+        return `${leftSide} = ${rightSide}`;
+    }
+
+
+    function generateDistributionSolutionSteps(coeffs, xAnswer) {
+        const { a, b, c, d, e, f, g, h, i, j, k, l, useComplex } = coeffs;
+        
+        const leftX = a * b + d * e + d * j * k;
+        const leftConst = a * c + d * f + d * j * l;
+        const rightX = g * h;
+        const rightConst = g * i;
+        
+        let steps = '<h3>解題步驟：</h3><ol>';
+        const originalEq = document.getElementById('question').textContent;
+        steps += `<li>原式： <span class="step-equation">${originalEq}</span></li>`;
+
+        let expandedLHS = [];
+        
+        const term1_expanded = formatIntegerExpression(a * b, a * c, 'x');
+        if (term1_expanded !== '0') expandedLHS.push(term1_expanded);
+        
+        if (d !== 0) {
+            let term2X = d * e;
+            let term2Const = d * f;
+            if (useComplex) {
+                term2X += d * j * k;
+                term2Const += d * j * l;
+                steps += `<li>先展開內層括號 $j(kx+l)$，再展開外層括號 (使用分配律)：<br>`;
+            } else {
+                steps += `<li>展開所有括號 (使用分配律)：<br>`;
+            }
+            const term2_expanded = formatIntegerExpression(term2X, term2Const, 'x');
+            if (term2_expanded !== '0') expandedLHS.push(term2_expanded);
+        } else {
+             steps += `<li>展開所有括號 (使用分配律)：<br>`;
+        }
+
+        const expandedRHS = formatIntegerExpression(rightX, rightConst, 'x');
+
+        let expandedLHS_string = expandedLHS[0] || '0';
+        if (expandedLHS.length > 1) {
+            let secondTerm = expandedLHS[1];
+            if (secondTerm.startsWith('-')) {
+                expandedLHS_string += ` ${secondTerm}`;
+            } else {
+                expandedLHS_string += ` + ${secondTerm}`;
+            }
+        }
+        
+        steps += `<span class="step-equation">${expandedLHS_string} = ${expandedRHS}</span></li>`;
+        
+        const finalXCoeff = leftX - rightX;
+        const finalConst = rightConst - leftConst;
+
+        const combinedEq = formatIntegerExpression(finalXCoeff, 0, 'x');
+        steps += `<li>將 x 項移至左邊，常數項移至右邊，並合併同類項：<br><span class="step-equation">${combinedEq} = ${finalConst}</span></li>`;
+
+        const finalFraction = simplifyFraction(finalConst, finalXCoeff);
+
+        const resultFraction = finalFraction.den === 1 ? finalFraction.num.toString() : `${finalFraction.num}/${finalFraction.den}`;
+        
+        steps += `<li>將兩邊同除以 x 的係數 (${finalXCoeff})： x = ${finalConst}/${finalXCoeff}</li>`;
+        steps += `<li>最終結果： x = ${resultFraction}</li>`;
         steps += '</ol>';
         
         return steps;
@@ -486,45 +677,42 @@
 
     // --- 主要控制函數 ---
 
-    /**
-     * 輔助函數：解析輸入值，可接受分數 N/M
-     * @param {string} inputValue 原始輸入字串
-     * @returns {{num: number, den: number}} 約分後的結果
-     */
     function parseInput(inputValue) {
         inputValue = inputValue.trim();
         
-        // 1. 檢查是否是分數格式 a/b
         const match = inputValue.match(/^(-?\d+)\/(-?\d+)$/);
         if (match) {
             const num = parseInt(match[1]);
             const den = parseInt(match[2]);
-            if (den === 0) return { num: 0, den: 0 }; // 無效輸入
+            if (den === 0) return { num: 0, den: 0 }; 
             return simplifyFraction(num, den);
         }
         
-        // 2. 嘗試解析為整數或浮點數
         const value = parseFloat(inputValue);
         if (!isNaN(value) && isFinite(value)) {
-            // 檢查是否為整數
             if (Math.abs(value - Math.round(value)) < EPSILON) {
                  return { num: Math.round(value), den: 1 };
             }
         }
         
-        return { num: 0, den: 0 }; // 無法解析
+        return { num: 0, den: 0 }; 
     }
 
     function generateQuestion() {
         if (timeoutId) clearTimeout(timeoutId);
 
-        const advancedMode = document.getElementById('advanced-mode').checked;
         let equationString;
-
-        if (advancedMode) {
-            equationString = generateFractionalQuestion();
-        } else {
-            equationString = generateIntegerQuestion();
+        switch (currentMode) {
+            case 'fractional':
+                equationString = generateFractionalQuestion();
+                break;
+            case 'distribution':
+                equationString = generateDistributionQuestion();
+                break;
+            case 'integer':
+            default:
+                equationString = generateIntegerQuestion();
+                break;
         }
 
         document.getElementById('question').textContent = equationString;
@@ -542,10 +730,9 @@
     function checkAnswerWrapper() {
         const inputElement = document.getElementById('answer-input');
         const inputValue = inputElement.value.trim();
-        const userAnswerFrac = parseInput(inputValue); // 取得約分後分數 {num: N, den: M}
+        const userAnswerFrac = parseInput(inputValue);
 
-        // 檢查是否是有效輸入
-        if (userAnswerFrac.den === 0 || (userAnswerFrac.num === 0 && userAnswerFrac.den === 0)) {
+        if (userAnswerFrac.den === 0 || (userAnswerFrac.num === 0 && userAnswerFrac.den === 0 && inputValue !== '0')) {
             document.getElementById('feedback').textContent = '❗ 請輸入一個有效的數值或分數 (N/M 格式)！';
             document.getElementById('feedback').className = 'incorrect';
             return;
@@ -558,32 +745,39 @@
         const feedbackElement = document.getElementById('feedback');
         const checkButton = document.getElementById('check-btn');
 
-        // 移除 totalCount++
-
-        // 核心修正 1: 比較約分後的分數 (N/M) 是否相等
+        // 核心：比較約分後的分數 (N/M) 是否相等
         const isCorrect = (userAnswerFrac.num === correctAnswer.num) && (userAnswerFrac.den === correctAnswer.den);
 
         if (isCorrect) {
-            // 移除 correctCount++
             feedbackElement.textContent = '✅ 正確！答對了！';
             feedbackElement.className = 'correct';
             timeoutId = setTimeout(generateQuestion, 2000); 
         } else {
-            // 顯示正確答案
             const correctDisplay = correctAnswer.den === 1 ? correctAnswer.num.toString() : `${correctAnswer.num}/${correctAnswer.den}`;
             
             feedbackElement.innerHTML = `❌ 錯誤！您輸入的值是 x = ${rawInput}。正確答案是 x = ${correctDisplay}。`;
             feedbackElement.className = 'incorrect';
             
             let solutionSteps;
-            if (currentCoeffs.type === 'integer') {
-                solutionSteps = generateIntegerSolutionSteps(
-                    currentCoeffs.a, currentCoeffs.b, currentCoeffs.c, currentCoeffs.d, correctAnswer
-                );
-            } else {
-                solutionSteps = generateFractionalSolutionSteps(
-                    currentCoeffs, correctAnswer
-                );
+            
+            switch (currentCoeffs.type) {
+                case 'integer':
+                    solutionSteps = generateIntegerSolutionSteps(
+                        currentCoeffs.a, currentCoeffs.b, currentCoeffs.c, currentCoeffs.d, correctAnswer
+                    );
+                    break;
+                case 'fractional':
+                    solutionSteps = generateFractionalSolutionSteps(
+                        currentCoeffs, correctAnswer
+                    );
+                    break;
+                case 'distribution':
+                    solutionSteps = generateDistributionSolutionSteps(
+                        currentCoeffs, correctAnswer
+                    );
+                    break;
+                default:
+                    solutionSteps = '無法顯示解題步驟。';
             }
             
             feedbackElement.innerHTML += `<div class="solution-box">${solutionSteps}</div>`;
@@ -592,7 +786,6 @@
             checkButton.onclick = function() { generateQuestion(); };
         }
 
-        // 移除更新成績顯示的程式碼
         document.getElementById('answer-input').disabled = true;
         checkButton.disabled = false;
     }
@@ -607,7 +800,8 @@
                 }
             });
         }
-        generateQuestion();
+        // 初始化時設定為基礎題型
+        setMode('integer');
     });
 
 </script>
