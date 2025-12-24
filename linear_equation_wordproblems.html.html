@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>一元一次方程式 - 應用題</title>
+    <style>
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background-color: #f4f7f9; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 850px; width: 100%; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; border-bottom: 3px solid #e8f0fe; padding-bottom: 15px; }
+        .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 25px; }
+        button { padding: 12px 5px; border-radius: 8px; cursor: pointer; border: 1px solid #dfe1e5; font-weight: bold; background: #fff; transition: 0.2s; }
+        .btn-active { background-color: #1a73e8 !important; color: white !important; border-color: #1a73e8; }
+        .question-box { background: #fff9c4; border: 2px solid #fbc02d; padding: 25px; border-radius: 12px; margin: 20px 0; font-size: 1.35em; line-height: 1.7; min-height: 80px; color: #3c4043; }
+        .control-area { text-align: center; margin-top: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        input { padding: 12px; width: 160px; font-size: 1.3em; border: 2px solid #dadce0; border-radius: 10px; text-align: center; }
+        .btn-action { padding: 12px 30px; border: none; border-radius: 10px; font-size: 1.2em; cursor: pointer; color: white; font-weight: bold; }
+        .btn-submit { background-color: #34a853; }
+        .btn-next { background-color: #f4b400; }
+        .sol-box { background: #fdf2f2; border-left: 6px solid #ea4335; padding: 25px; margin-top: 20px; display: none; line-height: 2; border-radius: 0 10px 10px 0; font-size: 1.1em; color: #444; }
+        .step-highlight { color: #d93025; font-weight: bold; }
+        .fb { text-align: center; font-size: 1.5em; font-weight: bold; margin: 15px 0; min-height: 40px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎯 國一數學：方程式應用題</h2>
+    <div class="menu" id="type-menu">
+        <button onclick="changeType(1, this)">買東西 (雞兔)</button>
+        <button onclick="changeType(2, this)">存錢問題</button>
+        <button onclick="changeType(3, this)">打折問題</button>
+        <button onclick="changeType(4, this)">兩人時間</button>
+        <button onclick="changeType(5, this)">倍數與差</button>
+        <button onclick="changeType(6, this)">花錢分率</button>
+        <button onclick="changeType(7, this)">路程追趕</button>
+        <button onclick="changeType(8, this)">平均身高</button>
+        <button onclick="changeType(9, this)">倒推邏輯</button>
+    </div>
+
+    <div id="q-text" class="question-box">請選擇題型開始練習</div>
+    
+    <div class="control-area">
+        <input type="number" id="ans-input" placeholder="輸入答案">
+        <button class="btn-action btn-submit" onclick="check()">送出答案</button>
+        <button class="btn-action btn-next" onclick="generate()">下一題</button>
+    </div>
+    
+    <div id="fb" class="fb"></div>
+    <div id="sol" class="sol-box"></div>
+</div>
+
+<script>
+    let cur = {};
+    let currentType = 1;
+    const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const names = ["小明", "阿華", "小強", "小美", "小雅", "大雄", "靜香", "阿傑"];
+
+    function changeType(type, btn) {
+        currentType = type;
+        document.querySelectorAll('#type-menu button').forEach(b => b.classList.remove('btn-active'));
+        if(btn) btn.classList.add('btn-active');
+        generate();
+    }
+
+    function generate() {
+        document.getElementById('fb').innerHTML = '';
+        document.getElementById('sol').style.display = 'none';
+        document.getElementById('ans-input').value = '';
+        let q = "", a = 0, s = "";
+        let n1 = names[r(0, names.length-1)];
+        let n2 = names[r(0, names.length-1)];
+        while(n1 === n2) n2 = names[r(0, names.length-1)];
+
+        switch(currentType) {
+            case 1: // 雞兔
+                let p1 = r(30, 60), p2 = r(15, 25);
+                let c1 = r(5, 12), c2 = r(5, 12);
+                let tot1 = c1 + c2, cost1 = c1 * p1 + c2 * p2;
+                q = `${n1}買了漢堡和可樂共 ${tot1} 份。漢堡每份 ${p1} 元，可樂每份 ${p2} 元，共花了 ${cost1} 元。請問漢堡買了幾份？`;
+                a = c1; 
+                s = `1. <b>設未知數</b>：設漢堡買了 <span class="step-highlight">x</span> 份，則可樂買了 <span class="step-highlight">(${tot1}-x)</span> 份。<br>` +
+                    `2. <b>列方程式</b>：${p1}x + ${p2}(${tot1}-x) = ${cost1}<br>` +
+                    `3. <b>解題步驟</b>：<br>` +
+                    `   ${p1}x + ${p2*tot1} - ${p2}x = ${cost1}<br>` +
+                    `   ${p1-p2}x = ${cost1 - p2*tot1}<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+
+            case 2: // 存錢
+                a = r(20, 150) * 10; let t2 = r(3, 7); let add2 = a * (t2 - 1);
+                q = `${n1}原本有一些錢，又存了 ${add2} 元，現在的錢是原來的 ${t2} 倍。請問原本有多少錢？`;
+                s = `1. <b>設未知數</b>：設原本有 <span class="step-highlight">x</span> 元。<br>` +
+                    `2. <b>列方程式</b>：x + ${add2} = ${t2}x<br>` +
+                    `3. <b>解題步驟</b>：<br>` +
+                    `   ${add2} = ${t2}x - x<br>` +
+                    `   ${add2} = ${t2-1}x<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+
+            case 3: // 打折
+                a = r(30, 150) * 10; let off3 = r(6, 9); let save3 = Math.round(a * (1 - off3/10));
+                q = `一本書打 ${off3} 折出售，比原價便宜了 ${save3} 元。請問這本書的原價是多少元？`;
+                s = `1. <b>觀念引導</b>：便宜的分率是 1 - ${off3/10} = <span class="step-highlight">${(10-off3)/10}</span>。<br>` +
+                    `2. <b>列方程式</b>：設原價為 x。 ${(10-off3)/10}x = ${save3}<br>` +
+                    `3. <b>解題步驟</b>：<br>` +
+                    `   x = ${save3} ÷ ${(10-off3)/10}<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+
+            case 4: // 和差
+                a = r(60, 150); let d4 = r(10, 50); let sum4 = a + (a - d4);
+                q = `${n1}和${n2}兩人的運動時間共 ${sum4} 分鐘。已知${n1}比${n2}多運動 ${d4} 分鐘。請問${n1}運動了幾分鐘？`;
+                s = `1. <b>設未知數</b>：設${n1}為 <span class="step-highlight">x</span>，則${n2}為 <span class="step-highlight">(x-${d4})</span>。<br>` +
+                    `2. <b>列方程式</b>：x + (x - ${d4}) = ${sum4}<br>` +
+                    `3. <b>解題步驟</b>：<br>` +
+                    `   2x - ${d4} = ${sum4}<br>` +
+                    `   2x = ${sum4 + d4}<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+
+            case 5: // 倍數差
+                let sm5 = r(15, 60), t5 = r(2, 4), le5 = r(5, 15);
+                a = sm5 * t5 - le5; let tot5 = sm5 + a;
+                q = `甲乙兩數和為 ${tot5}，甲是乙的 ${t5} 倍少 ${le5}。請問甲數是多少？`;
+                s = `1. <b>設未知數</b>：設乙為 <span class="step-highlight">x</span>，甲為 <span class="step-highlight">(${t5}x - ${le5})</span>。<br>` +
+                    `2. <b>列方程式</b>：(${t5}x - ${le5}) + x = ${tot5}<br>` +
+                    `3. <b>解題步驟</b>：<br>` +
+                    `   ${t5+1}x = ${tot5} + ${le5}<br>` +
+                    `   算出乙：x = ${(tot5+le5)/(t5+1)}<br>` +
+                    `   算出甲：${t5} × ${(tot5+le5)/(t5+1)} - ${le5} = <span class="step-highlight">${a}</span>`;
+                break;
+
+            case 6: // 花錢分率
+                let de6 = r(3, 5); let un6 = r(20, 80) * 10;
+                a = un6 * de6; let sp6 = un6; 
+                q = `${n1}花掉了 ${sp6} 元，剩下的錢剛好是原本的 ${de6-1}/${de6}。請問原本有多少錢？`;
+                s = `1. <b>觀念引導</b>：花掉的部分佔全體的 1 - ${de6-1}/${de6} = <span class="step-highlight">1/${de6}</span>。<br>` +
+                    `2. <b>列方程式</b>：(1/${de6})x = ${sp6}<br>` +
+                    `3. <b>解題步驟</b>：<br>` +
+                    `   x = ${sp6} × ${de6}<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+
+            case 7: // 路程追趕 (進階版：不同速度)
+                let v_slow = r(50, 80); // 慢的速度
+                let v_fast = r(90, 150); // 快的速度
+                let lead_time = r(5, 15); // 先出發時間
+                // 計算追上的時間 t： v_slow * (lead_time + t) = v_fast * t
+                // t = (v_slow * lead_time) / (v_fast - v_slow)
+                // 為了確保 t 是整數，調整 v_fast
+                let distance_lead = v_slow * lead_time;
+                let v_diff = r(10, 40); 
+                while (distance_lead % v_diff !== 0) { v_diff++; } // 尋找能整除的速差
+                v_fast = v_slow + v_diff;
+                let catch_time = distance_lead / v_diff;
+                
+                q = `${n1}跑步每分鐘 ${v_slow} 公尺，他先出發 ${lead_time} 分鐘後，${n2}騎單車每分鐘 ${v_fast} 公尺從同地出發追趕。請問${n2}出發幾分鐘後會追上${n1}？`;
+                a = catch_time;
+                s = `1. <b>設未知數</b>：設 <span class="step-highlight">${n2}</span> 出發 <span class="step-highlight">x</span> 分鐘後追上。<br>` +
+                    `2. <b>觀念引導</b>：追上時，兩人的「行進路徑長度」相等。<br>` +
+                    `   ${n1}走的時間是 (x + ${lead_time}) 分鐘，路程為 ${v_slow}(x + ${lead_time})。<br>` +
+                    `   ${n2}走的時間是 x 分鐘，路程為 ${v_fast}x。<br>` +
+                    `3. <b>列方程式</b>：<span class="step-highlight">${v_slow}(x + ${lead_time}) = ${v_fast}x</span><br>` +
+                    `4. <b>解題步驟</b>：<br>` +
+                    `   展開：${v_slow}x + ${v_slow * lead_time} = ${v_fast}x<br>` +
+                    `   移項：${v_slow * lead_time} = ${v_fast}x - ${v_slow}x<br>` +
+                    `   ${v_slow * lead_time} = ${v_fast - v_slow}x<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+
+            case 8: // 平均身高
+                let a8 = r(155, 175); let diffs8 = [[4,1], [5,2], [7,4], [8,5], [9,6]]; 
+                let pair8 = diffs8[r(0, diffs8.length-1)];
+                let d1 = pair8[0], d2 = pair8[1];
+                let tot8 = (a8 + d1) + a8 + (a8 - d2); let avg8 = tot8 / 3;
+                q = `${n1}、${n2}、小強三人平均身高 ${avg8} 公分。已知${n1}比${n2}高 ${d1} 公分，小強比${n2}矮 ${d2} 公分。請問${n2}身高？`;
+                a = a8;
+                s = `1. <b>觀念引導</b>：總身高 = ${avg8} × 3 = <span class="step-highlight">${tot8}</span>。<br>` +
+                    `2. <b>列方程式</b>：設${n2}為 x。 (x + ${d1}) + x + (x - ${d2}) = ${tot8}<br>` +
+                    `3. <b>解題步驟</b>：<br>` +
+                    `   3x + ${d1 - d2} = ${tot8} → 3x = ${tot8 - (d1-d2)}<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+
+            case 9: // 倒推邏輯
+                let a9 = r(5, 30); let m1 = r(2, 5), m2 = r(2, 3);
+                let rem = (a9 * m1) % m2; let sub = rem === 0 ? m2 : rem; 
+                let res = (a9 * m1 - sub) / m2;
+                q = `某數乘以 ${m1}，減去 ${sub}，最後除以 ${m2}，得到的答案是 ${res}。請問某數是多少？`;
+                a = a9;
+                s = `1. <b>列方程式</b>：( ${m1}x - ${sub} ) ÷ ${m2} = ${res}<br>` +
+                    `2. <b>解題步驟</b>：<br>` +
+                    `   ${m1}x - ${sub} = ${res} × ${m2}<br>` +
+                    `   ${m1}x = ${res * m2} + ${sub}<br>` +
+                    `   算出答案：<span class="step-highlight">x = ${a}</span>`;
+                break;
+        }
+        cur = { a, s };
+        document.getElementById('q-text').innerHTML = q;
+        document.getElementById('ans-input').focus();
+    }
+
+    function check() {
+        let val = parseInt(document.getElementById('ans-input').value);
+        let fb = document.getElementById('fb');
+        if(isNaN(val)) return;
+        if(val === cur.a) {
+            fb.innerHTML = "✅ 答對了！你太棒了！"; fb.style.color = "#34a853";
+        } else {
+            // 修改處：出錯時直接告知答案
+            fb.innerHTML = `❌ 算錯囉，正確答案是 <span style="font-size:1.2em; text-decoration:underline;">${cur.a}</span>，請看下方解析。`; 
+            fb.style.color = "#ea4335";
+        }
+        document.getElementById('sol').innerHTML = "<strong>【解題指引】</strong><br>" + cur.s;
+        document.getElementById('sol').style.display = 'block';
+    }
+
+    window.onload = () => changeType(1, document.querySelector('button'));
+</script>
+</body>
+</html>
