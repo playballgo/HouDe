@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>厚德國小桌球招生系統</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f7f9; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        
+        .section { margin-bottom: 20px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px solid #eee; }
+        .section-title { font-weight: bold; color: #2980b9; margin-bottom: 10px; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        
+        input[type="radio"] { display: none; }
+        label { cursor: pointer; padding: 8px 16px; background: white; border: 1px solid #3498db; color: #3498db; border-radius: 5px; transition: 0.2s; font-size: 0.95em; }
+        input[type="radio"]:checked + label { background: #3498db; color: white; }
+
+        /* 費用區與連結按鈕佈局 */
+        .price-box { 
+            background: #fff9c4; padding: 15px; border-left: 5px solid #f1c40f; margin: 20px 0; 
+            display: flex; justify-content: space-between; align-items: center; font-weight: bold; 
+        }
+        .price-val { color: #e74c3c; font-size: 1.3em; }
+        .reg-link { 
+            background: #e67e22; color: white; padding: 8px 20px; border-radius: 50px; 
+            text-decoration: none; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .reg-link:hover { background: #d35400; transform: scale(1.05); }
+
+        table { width: 100%; border-collapse: collapse; background: white; table-layout: fixed; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 10px 2px; text-align: center; font-size: 0.88em; line-height: 1.5; }
+        th { background: #34495e; color: white; }
+        
+        .time-col { width: 110px; background: #f9f9f9; font-weight: bold; }
+        .bg-hw { background-color: #e3f2fd; color: #1976d2; }
+        .bg-train { background-color: #fff3e0; color: #e65100; font-weight: bold; }
+        .bg-club { background-color: #f3e5f5; color: #7b1fa2; font-weight: bold; }
+        .bg-special { background-color: #fffde7; color: #c2185b; font-weight: bold; }
+        .cell-empty { color: #ccc; background-color: #f5f5f5; }
+        .wait-text { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏓 厚德國小桌球隊/社團 招生方案</h2>
+
+    <div class="section">
+        <div class="section-title">儲備隊 (低年級)</div>
+        <div class="btn-group">
+            <input type="radio" name="p" id="ra" onclick="render('ra')"><label for="ra">低年級 A (4天)</label>
+            <input type="radio" name="p" id="rb5" onclick="render('rb5')"><label for="rb5">低年級 B (3/5天)</label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">球隊 (中、高年級)</div>
+        <div class="btn-group">
+            <input type="radio" name="p" id="m5" onclick="render('m5')"><label for="m5">中年級</label>
+            <input type="radio" name="p" id="h3" onclick="render('h3')"><label for="h3">高年級</label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">社團 (零基礎)</div>
+        <div class="btn-group">
+            <input type="radio" name="p" id="cm" onclick="render('cm')"><label for="cm">中年級社團</label>
+            <input type="radio" name="p" id="ch" onclick="render('ch')"><label for="ch">高年級社團</label>
+        </div>
+    </div>
+
+    <div id="priceInfo" class="price-box">請選擇上方方案查看詳情</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th id="timeHeader" class="time-col">時間</th>
+                <th>週一</th>
+                <th>週二</th>
+                <th>週三</th>
+                <th>週四</th>
+                <th>週五</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+    
+    <p style="font-size: 0.8em; color: #666; margin-top: 10px;">* 以上包含冷氣與行政耗材費用。兄弟姊妹第 2 位學費減 $1500。</p>
+</div>
+
+<script>
+// 報名連結地圖
+const links = {
+    reserve: "https://forms.gle/gGrYhF3iQ6ZafhMz5",
+    team: "https://forms.gle/PAKwNA2qJ6U1boQ86",
+    club: "https://forms.gle/SPDLz1M69LPvD79y6"
+};
+
+function getLinkBtn(type) {
+    return `<a href="${links[type]}" target="_blank" class="reg-link">👉 立即線上報名</a>`;
+}
+
+function render(plan) {
+    const tbody = document.getElementById('tableBody');
+    const pInfo = document.getElementById('priceInfo');
+    tbody.innerHTML = ""; 
+
+    if (plan === 'm5' || plan === 'h3' || plan === 'cm' || plan === 'ch') {
+        const rows = ["12:00-14:00", "16:00-18:20"];
+        
+        if (plan === 'm5') {
+            pInfo.innerHTML = `<div>每周 3 天：<span class="price-val">$15,000</span> &nbsp; 每周 5 天：<span class="price-val">$17,000</span></div> ${getLinkBtn('team')}`;
+            let html = `<tr><td class="time-col">${rows[0]}</td><td class="cell-empty"></td><td class="cell-empty"></td><td class="bg-hw">午餐、午休、寫作業</td><td class="cell-empty"></td><td class="bg-hw">午餐、午休、寫作業</td></tr>`;
+            html += `<tr><td class="time-col">${rows[1]}</td><td class="bg-train">桌球、體能</td><td class="bg-train">桌球、體能</td><td class="bg-train">14:00-18:00<br>桌球、體能</td><td class="bg-train">桌球、體能</td><td class="bg-train">桌球、體能</td></tr>`;
+            tbody.innerHTML = html;
+        } 
+        else if (plan === 'h3') {
+            pInfo.innerHTML = `<div>每周 3 天：<span class="price-val">$15,000</span> &nbsp; 每周 5 天：<span class="price-val">$17,000</span></div> ${getLinkBtn('team')}`;
+            let html = `<tr><td class="time-col">${rows[0]}</td><td class="cell-empty"></td><td class="cell-empty"></td><td class="bg-hw">午餐、午休、寫作業</td><td class="cell-empty"></td><td class="cell-empty"></td></tr>`;
+            html += `<tr><td class="time-col">${rows[1]}</td><td class="bg-train">桌球、體能</td><td class="bg-train">桌球、體能</td><td class="bg-train">14:00-18:00<br>桌球、體能</td><td class="bg-train">桌球、體能</td><td class="bg-train">桌球、體能</td></tr>`;
+            tbody.innerHTML = html;
+        }
+        else if (plan === 'cm') {
+            pInfo.innerHTML = `<div>中年級社團費用：<span class="price-val">$10,000</span> / 學期</div> ${getLinkBtn('club')}`;
+            let html = `<tr><td class="time-col">12:00-14:00</td><td class="cell-empty"></td><td class="cell-empty"></td><td class="bg-hw">午餐、午休、寫作業</td><td class="cell-empty"></td><td class="bg-hw">午餐、午休、寫作業</td></tr>`;
+            html += `<tr><td class="time-col">14:00-16:00</td><td class="cell-empty"></td><td class="cell-empty"></td><td class="bg-club">桌球、體適能</td><td class="cell-empty"></td><td class="bg-club">桌球、體適能</td></tr>`;
+            tbody.innerHTML = html;
+        }
+        else if (plan === 'ch') {
+            pInfo.innerHTML = `<div>高年級社團費用：<span class="price-val">$5,000</span> / 學期</div> ${getLinkBtn('club')}`;
+            let html = `<tr><td class="time-col">12:00-14:00</td><td class="cell-empty"></td><td class="cell-empty"></td><td class="bg-hw">午餐、午休、寫作業</td><td class="cell-empty"></td><td class="cell-empty"></td></tr>`;
+            html += `<tr><td class="time-col">14:00-16:00</td><td class="cell-empty"></td><td class="cell-empty"></td><td class="bg-club">桌球、體適能</td><td class="cell-empty"></td><td class="cell-empty"></td></tr>`;
+            tbody.innerHTML = html;
+        }
+    } 
+    else {
+        const rows = ["12:00-14:00", "14:00-17:30", "17:30-18:00"];
+        if (plan === 'ra') {
+            pInfo.innerHTML = `<div>每周 4 天費用：<span class="price-val">$16,500</span></div> ${getLinkBtn('reserve')}`;
+            [0, 1].forEach((r, i) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td class="time-col">${rows[i]}</td>` + 
+                    `<td class="${i===0?'bg-hw':'bg-train'}">${i===0?'午餐、午休、寫作業':'桌球、體適能、遊戲'}</td>` +
+                    `<td class="cell-empty"></td>` +
+                    `<td class="${i===0?'bg-hw':'bg-train'}">${i===0?'午餐、午休、寫作業':'桌球、體適能、遊戲'}</td>` +
+                    `<td class="${i===0?'bg-hw':'bg-train'}">${i===0?'午餐、午休、寫作業':'桌球、體適能、遊戲'}</td>` +
+                    `<td class="${i===0?'bg-hw':'bg-train'}">${i===0?'午餐、午休、寫作業':'桌球、體適能、遊戲'}</td>`;
+                tbody.appendChild(tr);
+            });
+        } 
+        else if (plan === 'rb5') {
+            pInfo.innerHTML = `<div>每周 3 天：<span class="price-val">$16,500</span> &nbsp;每周 5 天：<span class="price-val">$20,000</span></div> ${getLinkBtn('reserve')}`;
+            let h0 = `<tr><td class="time-col">${rows[0]}</td><td class="bg-hw">午餐、午休、寫作業</td><td class="cell-empty">---</td><td class="bg-hw">午餐、午休、寫作業</td><td class="bg-hw">午餐、午休、寫作業</td><td class="bg-hw">午餐、午休、寫作業</td></tr>`;
+            let h1 = `<tr><td class="time-col">${rows[1]}</td><td class="bg-train">桌球、體適能、遊戲</td><td class="bg-special">16:00-17:30<br>桌球、體適能、遊戲</td><td class="bg-train">桌球、體適能、遊戲</td><td class="bg-train">桌球、體適能、遊戲</td><td class="bg-train">桌球、體適能、遊戲</td></tr>`;
+            let h2 = `<tr><td class="time-col">${rows[2]}</td><td colspan="5" class="wait-text">等待家長接回</td></tr>`;
+            tbody.innerHTML = h0 + h1 + h2;
+        }
+    }
+}
+</script>
+</body>
+</html>
