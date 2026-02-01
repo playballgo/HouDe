@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>大字體時鐘與碼表</title>
+    <style>
+        :root {
+            --bg-color: black;
+            --text-color: white;
+            --accent-color: rgba(128, 128, 128, 0.3);
+        }
+
+        body.light-mode {
+            --bg-color: white;
+            --text-color: black;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column; /* 改為垂直排列 */
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+        /* 主時鐘 */
+        #clock {
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 20vw; 
+            line-height: 1;
+            white-space: nowrap;
+            transition: color 0.3s ease;
+        }
+
+        /* 碼表樣式 */
+        #stopwatch {
+            display: none; /* 初始隱藏 */
+            color: var(--text-color);
+            font-size: 8vw;
+            margin-top: 20px;
+            opacity: 0.8;
+            cursor: pointer;
+            font-variant-numeric: tabular-nums; /* 防止數字跳動 */
+        }
+
+        /* 按鈕通用樣式 */
+        .nav-btn {
+            position: absolute;
+            bottom: 20px;
+            padding: 10px 15px;
+            background: var(--accent-color);
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0.5;
+            user-select: none;
+        }
+
+        #toggle-btn { right: 20px; }
+        #stopwatch-toggle { left: 20px; }
+        
+        .nav-btn:active { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="clock">00:00:00</div>
+    <div id="stopwatch" title="點擊歸零重計">00:00</div>
+
+    <button id="stopwatch-toggle" class="nav-btn">碼表開關</button>
+    <button id="toggle-btn" class="nav-btn">切換配色</button>
+
+    <script>
+        // --- 主時鐘邏輯 ---
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 碼表邏輯 ---
+        let startTime;
+        let stopwatchInterval;
+        const stopwatchDisplay = document.getElementById('stopwatch');
+        const stopwatchBtn = document.getElementById('stopwatch-toggle');
+
+        function updateStopwatch() {
+            const now = new Date();
+            const diff = Math.floor((now - startTime) / 1000);
+            const m = String(Math.floor(diff / 60)).padStart(2, '0');
+            const s = String(diff % 60).padStart(2, '0');
+            stopwatchDisplay.textContent = `${m}:${s}`;
+        }
+
+        stopwatchBtn.addEventListener('click', function() {
+            if (stopwatchDisplay.style.display === 'none' || stopwatchDisplay.style.display === '') {
+                stopwatchDisplay.style.display = 'block';
+                resetStopwatch();
+            } else {
+                stopwatchDisplay.style.display = 'none';
+                clearInterval(stopwatchInterval);
+            }
+        });
+
+        function resetStopwatch() {
+            clearInterval(stopwatchInterval);
+            startTime = new Date();
+            stopwatchDisplay.textContent = "00:00";
+            stopwatchInterval = setInterval(updateStopwatch, 1000);
+        }
+
+        stopwatchDisplay.addEventListener('click', resetStopwatch);
+
+        // --- 配色切換邏輯 ---
+        const colorBtn = document.getElementById('toggle-btn');
+        colorBtn.addEventListener('click', function() {
+            document.body.classList.toggle('light-mode');
+            colorBtn.textContent = document.body.classList.contains('light-mode') ? '換成黑底' : '換成白底';
+        });
+    </script>
+</body>
+</html>
