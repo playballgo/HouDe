@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📐 二元一次聯立方程式題庫</title>
+    <style>
+        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; padding: 20px; background-color: #f4f7f9; display: flex; justify-content: center; }
+        .container { max-width: 900px; width: 100%; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; border-bottom: 4px solid #3498db; padding-bottom: 10px; margin-top: 0; }
+        
+        .header-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
+        .timer-display { font-size: 1.5em; font-weight: bold; color: #e74c3c; font-family: 'Consolas', monospace; }
+        .timer-settings label { margin-right: 10px; cursor: pointer; }
+
+        .controls { margin-bottom: 25px; text-align: center; }
+        .mode-btn { background-color: #bdc3c7; color: white; padding: 10px 22px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; font-weight: bold; transition: 0.3s; }
+        .selected-mode { background-color: #3498db; }
+        
+        .question-area { background: #fdfdfd; border: 2px solid #ecf0f1; border-radius: 10px; padding: 25px; text-align: center; }
+        #question-display { font-size: 1.6em; font-family: 'Consolas', 'Courier New', monospace; display: inline-block; text-align: left; line-height: 1.8; margin: 20px 0; padding: 20px; background: #2c3e50; color: #ecf0f1; border-radius: 8px; width: 85%; min-height: 80px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
+        
+        .input-row { display: flex; justify-content: center; gap: 30px; margin: 20px 0; }
+        .input-box { display: flex; flex-direction: column; align-items: center; }
+        .input-box label { font-size: 1.2em; font-weight: bold; margin-bottom: 8px; color: #34495e; }
+        input[type="text"] { padding: 12px; font-size: 1.3em; width: 130px; border: 2px solid #bdc3c7; border-radius: 6px; text-align: center; transition: 0.2s; }
+        input[type="text"]:focus { border-color: #3498db; outline: none; box-shadow: 0 0 8px rgba(52,152,219,0.2); }
+        
+        #check-btn { background-color: #27ae60; color: white; padding: 14px 40px; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; }
+        #check-btn:hover { background-color: #219150; }
+        
+        #feedback { margin-top: 20px; font-size: 1.2em; font-weight: bold; min-height: 30px; }
+        .solution-process { margin-top: 25px; text-align: left; background: #f0f9ff; padding: 25px; border-radius: 8px; border-left: 5px solid #3498db; display: none; line-height: 2; font-size: 1.1em; color: #2c3e50; }
+        .step-title { font-weight: bold; color: #2980b9; border-bottom: 2px solid #d6eaf8; margin-bottom: 15px; display: block; padding-bottom: 5px; }
+        .correct { color: #27ae60; }
+        .incorrect { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📐 二元一次聯立方程式</h1>
+
+    <div class="header-meta">
+        <div class="timer-settings">
+            <strong>計時設定：</strong>
+            <input type="radio" name="timer-set" value="30" id="t30" checked> <label for="t30">30秒</label>
+            <input type="radio" name="timer-set" value="60" id="t60"> <label for="t60">60秒</label>
+        </div>
+        <div class="timer-display">⏱ <span id="time-left">30</span>s</div>
+    </div>
+
+    <div class="controls">
+        <button id="mode-basic" onclick="setMode('basic')" class="mode-btn">基礎題型</button>
+        <button id="mode-challenge" onclick="setMode('challenge')" class="mode-btn">挑戰題型</button>
+        <button onclick="generateQuestion()" style="background-color: #e67e22;" class="mode-btn">下一題</button>
+    </div>
+
+    <div class="question-area">
+        <div id="question-display">載入中...</div>
+        
+        <div class="input-row">
+            <div class="input-box">
+                <label>x =</label>
+                <input type="text" id="ans-x" autocomplete="off">
+            </div>
+            <div class="input-box">
+                <label>y =</label>
+                <input type="text" id="ans-y" autocomplete="off">
+            </div>
+        </div>
+
+        <button id="check-btn" onclick="checkAnswer()">檢查答案</button>
+        <div id="feedback"></div>
+        <div id="solution-process" class="solution-process"></div>
+    </div>
+</div>
+
+<script>
+    let currentMode = 'basic', timerInterval = null, timeLeft = 30;
+    let correctX = {n: 0, d: 1}, correctY = {n: 0, d: 1};
+    let eqData = [];
+
+    // --- 數學核心工具 ---
+    function gcd(a, b) { return b === 0 ? Math.abs(a) : gcd(b, a % b); }
+    function simplify(n, d) {
+        if (d === 0) return {n, d: 1};
+        let common = gcd(n, d);
+        let rn = n / common, rd = d / common;
+        if (rd < 0) { rn = -rn; rd = -rd; }
+        return { n: rn, d: rd };
+    }
+    function f2s(f) { return f.d === 1 ? f.n.toString() : `${f.n}/${f.d}`; }
+    function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function formatLine(a, b) {
+        let res = "";
+        if (a !== 0) res += (a === 1 ? "x" : (a === -1 ? "-x" : a + "x"));
+        if (b !== 0) {
+            let sign = (b > 0 ? (res === "" ? "" : " + ") : (res === "" ? "-" : " - "));
+            let val = (Math.abs(b) === 1 ? "y" : Math.abs(b) + "y");
+            res += sign + val;
+        }
+        return res || "0";
+    }
+
+    // --- 計時器功能 ---
+    function startTimer() {
+        clearInterval(timerInterval);
+        const radioVal = document.querySelector('input[name="timer-set"]:checked').value;
+        timeLeft = parseInt(radioVal);
+        document.getElementById('time-left').innerText = timeLeft;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('time-left').innerText = timeLeft;
+            if (timeLeft <= 0) clearInterval(timerInterval);
+        }, 1000);
+    }
+
+    // --- 題目生成 ---
+    function setMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected-mode'));
+        document.getElementById(`mode-${mode}`).classList.add('selected-mode');
+        generateQuestion();
+    }
+
+    function generateQuestion() {
+        clearInterval(timerInterval);
+        document.getElementById('solution-process').style.display = "none";
+        document.getElementById('feedback').innerHTML = "";
+        document.getElementById('ans-x').value = "";
+        document.getElementById('ans-y').value = "";
+        document.getElementById('ans-x').disabled = false;
+        document.getElementById('ans-y').disabled = false;
+        
+        correctX = simplify(rnd(-8, 8), rnd(1, 2));
+        correctY = simplify(rnd(-8, 8), rnd(1, 2));
+        eqData = [];
+
+        if (currentMode === 'basic') {
+            eqData.push(genBasicData());
+            eqData.push(genBasicData());
+        } else {
+            eqData.push(genChallengeData());
+            eqData.push(genChallengeData());
+        }
+
+        document.getElementById('question-display').innerHTML = `① ${eqData[0].rawStr}<br>② ${eqData[1].rawStr}`;
+        startTimer();
+    }
+
+    function genBasicData() {
+        let a = 0, b = 0;
+        while(a === 0 && b === 0) { a = rnd(-6, 6); b = rnd(-6, 6); }
+        let cn = a * correctX.n * correctY.d + b * correctY.n * correctX.d;
+        let cd = correctX.d * correctY.d;
+        let c = simplify(cn, cd);
+        return { rawStr: `${formatLine(a, b)} = ${f2s(c)}`, stdA: a, stdB: b, stdC: c, isComplex: false };
+    }
+
+    function genChallengeData() {
+        let n = rnd(1, 3), m = rnd(2, 3), a = rnd(-4, 4), b = rnd(-4, 4);
+        if (a === 0 && b === 0) a = 1;
+        let k = rnd(-3, 3), ci = rnd(-2, 2), di = rnd(-2, 2);
+        
+        let t1n = n * (a * correctX.n * correctY.d + b * correctY.n * correctX.d);
+        let t1d = m * correctX.d * correctY.d;
+        let t2n = k * (ci * correctX.n * correctY.d + di * correctY.n * correctX.d);
+        let t2d = correctX.d * correctY.d;
+        let finalC = simplify(t1n * t2d + t2n * t1d, t1d * t2d);
+
+        let s = `${f2s(simplify(n, m))}(${formatLine(a, b)})`;
+        if (k !== 0 && (ci !== 0 || di !== 0)) s += (k > 0 ? ` + ${k==1?"":k}` : ` - ${Math.abs(k)==1?"":Math.abs(k)}`) + `(${formatLine(ci, di)})`;
+        s += ` = ${f2s(finalC)}`;
+
+        return { rawStr: s, stdA: n * a + m * k * ci, stdB: n * b + m * k * di, stdC: simplify(finalC.n * m, finalC.d), isComplex: true, m };
+    }
+
+    function checkAnswer() {
+        clearInterval(timerInterval);
+        const ux = parseIn(document.getElementById('ans-x').value);
+        const uy = parseIn(document.getElementById('ans-y').value);
+        if (isNaN(ux.n) || isNaN(uy.n)) { alert("請輸入數值或分數(如 1/2)"); return; }
+
+        const isCorrect = (ux.n === correctX.n && ux.d === correctX.d && uy.n === correctY.n && uy.d === correctY.d);
+        document.getElementById('feedback').innerHTML = isCorrect ? "<span class='correct'>✅ 太棒了，答案完全正確！</span>" : "<span class='incorrect'>❌ 答錯囉，看看下面的解題步驟吧：</span>";
+        
+        document.getElementById('ans-x').disabled = true;
+        document.getElementById('ans-y').disabled = true;
+        showSolution();
+    }
+
+    function parseIn(val) {
+        val = val.trim();
+        if (val.includes('/')) {
+            let p = val.split('/');
+            return simplify(parseInt(p[0]), parseInt(p[1]));
+        }
+        return simplify(parseInt(val), 1);
+    }
+
+    function showSolution() {
+        const box = document.getElementById('solution-process');
+        box.style.display = "block";
+        let html = "<span class='step-title'>Step 1: 整理方程式</span>";
+        
+        eqData.forEach((eq, i) => {
+            if (eq.isComplex) {
+                html += `將第 ${i+1} 式同乘 ${eq.m} 並展開整理，得式子 ${i === 0 ? '③' : '④'}：${formatLine(eq.stdA, eq.stdB)} = ${f2s(eq.stdC)}<br>`;
+            } else {
+                html += `第 ${i+1} 式整理為：${formatLine(eq.stdA, eq.stdB)} = ${f2s(eq.stdC)}<br>`;
+            }
+        });
+
+        html += "<br><span class='step-title'>Step 2: 消去法求解</span>";
+        let a1 = eqData[0].stdA, a2 = eqData[1].stdA;
+        let b1 = eqData[0].stdB, b2 = eqData[1].stdB;
+        let c1 = eqData[0].stdC, c2 = eqData[1].stdC;
+
+        let lcmA = Math.abs((a1 * a2) / gcd(a1, a2)) || Math.abs(a1) || Math.abs(a2);
+        let m1 = lcmA / a1, m2 = lcmA / a2;
+        
+        if (a1 !== 0 && a2 !== 0) {
+            html += `調整 x 的係數絕對值為 ${lcmA}：<br>`;
+            html += `③ × (${m1}) → ${formatLine(a1*m1, b1*m1)} = ${f2s(simplify(c1.n*m1, c1.d))}<br>`;
+            html += `④ × (${m2}) → ${formatLine(a2*m2, b2*m2)} = ${f2s(simplify(c2.n*m2, c2.d))}<br>`;
+            html += `兩式相減消去 x，求得 y = ${f2s(correctY)}<br>`;
+        }
+        
+        html += `<br><span class='step-title'>Step 3: 代入得解</span>`;
+        html += `將 y = ${f2s(correctY)} 代入上述任一式，求得 x = ${f2s(correctX)}。<br>`;
+        html += `<div style="margin-top:15px; font-size:1.3em;"><strong>🎯 最終答案：x = ${f2s(correctX)}, y = ${f2s(correctY)}</strong></div>`;
+
+        box.innerHTML = html.replace(/\+\s\-/g, "- ").replace(/\-\s\-/g, "+ ");
+    }
+
+    window.onload = () => setMode('basic');
+</script>
+
+</body>
+</html>
