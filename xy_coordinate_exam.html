@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>國中數學：直線繪圖挑戰 (含座標顯示)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 95%; max-width: 850px; text-align: center; }
+        .header { background: #2c3e50; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; position: relative; }
+        .stats { position: absolute; right: 20px; top: 15px; font-size: 0.85rem; line-height: 1.4; }
+        .question-box { font-size: 2.2rem; font-weight: bold; margin: 15px 0; color: #2980b9; background: #f0f7ff; padding: 15px; border: 2px solid #3498db; border-radius: 10px; }
+        .canvas-container { position: relative; width: 100%; height: 550px; background: white; border: 1px solid #ccc; border-radius: 8px; }
+        .btn-group { margin-top: 20px; display: flex; gap: 15px; justify-content: center; }
+        button { padding: 12px 30px; font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .btn-check { background: #27ae60; color: white; }
+        .btn-reset { background: #bdc3c7; color: #2c3e50; }
+        .btn-next { background: #e67e22; color: white; display: none; }
+        #feedback { margin-top: 10px; font-size: 1.2rem; min-height: 30px; font-weight: bold; }
+        .hint { font-size: 0.9rem; color: #7f8c8d; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="stats">答對：<span id="correct-count">0</span><br>總計：<span id="total-count">0</span></div>
+        <h2>✏️ 直線方程式作圖題</h2>
+        <p>請在坐標平面上找出兩個點來完成直線</p>
+    </div>
+
+    <div class="question-box" id="question">載入中...</div>
+    <div class="hint">💡 點擊網格標註座標，支援 0.5 刻度</div>
+
+    <div class="canvas-container">
+        <canvas id="quizChart"></canvas>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div class="btn-group">
+        <button class="btn-reset" onclick="resetPoints()">清除重畫</button>
+        <button class="btn-check" id="check-btn" onclick="checkAnswer()">提交答案</button>
+        <button class="btn-next" id="next-btn" onclick="generateQuestion()">下一題挑戰</button>
+    </div>
+</div>
+
+<script>
+    let chart;
+    let targetEq = { a: 1, b: 1, c: 1 };
+    let userPoints = [];
+    let correctTotal = 0, attemptedTotal = 0;
+    const RANGE = 10;
+
+    // 自定義 Chart.js 插件：在點旁邊繪製座標文字
+    const coordLabelPlugin = {
+        id: 'coordLabel',
+        afterDatasetsDraw: (chart) => {
+            const { ctx, data, scales: { x, y } } = chart;
+            ctx.save();
+            ctx.font = "bold 14px sans-serif";
+            ctx.fillStyle = "#2c3e50";
+            ctx.textAlign = "left";
+
+            // dataset 0 是使用者的點
+            data.datasets[0].data.forEach((point) => {
+                const px = x.getPixelForValue(point.x);
+                const py = y.getPixelForValue(point.y);
+                // 稍微位移文字位置，避免壓在點上
+                ctx.fillText(`(${point.x}, ${point.y})`, px + 8, py - 8);
+            });
+            ctx.restore();
+        }
+    };
+
+    function init() {
+        const ctx = document.getElementById('quizChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { 
+                        label: '你的直線', 
+                        data: [], 
+                        showLine: true, 
+                        borderColor: '#3498db', 
+                        borderWidth: 3, 
+                        pointRadius: 6, 
+                        pointBackgroundColor: '#3498db' 
+                    },
+                    { 
+                        label: '正確答案', 
+                        data: [], 
+                        showLine: true, 
+                        borderColor: '#e74c3c', 
+                        borderDash: [6, 4], 
+                        borderWidth: 2, 
+                        pointRadius: 0, 
+                        hidden: true 
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 400 },
+                onClick: handleCanvasClick,
+                scales: {
+                    x: { 
+                        type: 'linear', position: 'center', min: -RANGE, max: RANGE, 
+                        grid: { color: (ctx) => ctx.tick.value === 0 ? '#000' : (ctx.tick.value % 1 === 0 ? '#bbb' : '#eee') },
+                        ticks: { stepSize: 0.5, callback: (val) => val % 1 === 0 ? val : "" } 
+                    },
+                    y: { 
+                        type: 'linear', position: 'center', min: -RANGE, max: RANGE, 
+                        grid: { color: (ctx) => ctx.tick.value === 0 ? '#000' : (ctx.tick.value % 1 === 0 ? '#bbb' : '#eee') },
+                        ticks: { stepSize: 0.5, callback: (val) => val % 1 === 0 ? val : "" } 
+                    }
+                },
+                plugins: { legend: { display: false } }
+            },
+            plugins: [coordLabelPlugin]
+        });
+        generateQuestion();
+    }
+
+    function generateQuestion() {
+        const coeffs = [1, -1, 2, -2, 3, -3];
+        let a, b, c;
+        let isValid = false;
+
+        while (!isValid) {
+            a = coeffs[Math.floor(Math.random() * coeffs.length)];
+            b = coeffs[Math.floor(Math.random() * coeffs.length)];
+            let x1 = (Math.floor(Math.random() * 21) - 10) / 2;
+            let y1 = (Math.floor(Math.random() * 21) - 10) / 2;
+            let tempC = a * x1 + b * y1;
+            if (Number.isInteger(tempC) && tempC !== 0) {
+                c = tempC;
+                isValid = true;
+            }
+        }
+
+        targetEq = { a, b, c };
+        let str = "";
+        if (a !== 0) {
+            if (a === 1) str += "x";
+            else if (a === -1) str += "-x";
+            else str += a + "x";
+        }
+        if (b !== 0) {
+            if (a !== 0) str += b > 0 ? " + " : " - ";
+            else if (b < 0) str += "-";
+            const absB = Math.abs(b);
+            if (absB === 1) str += "y";
+            else str += absB + "y";
+        }
+        document.getElementById('question').innerText = `${str} = ${c}`;
+        
+        userPoints = [];
+        chart.data.datasets[0].data = [];
+        chart.data.datasets[1].data = [];
+        chart.data.datasets[1].hidden = true;
+        chart.update();
+        
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('check-btn').style.display = 'inline-block';
+    }
+
+    function handleCanvasClick(evt) {
+        if (userPoints.length >= 2 || document.getElementById('next-btn').style.display === 'inline-block') return;
+
+        const canvasPosition = Chart.helpers.getRelativePosition(evt, chart);
+        const xValue = Math.round(chart.scales.x.getValueForPixel(canvasPosition.x) * 2) / 2;
+        const yValue = Math.round(chart.scales.y.getValueForPixel(canvasPosition.y) * 2) / 2;
+
+        // 防止重複點擊同一點
+        if (userPoints.some(p => p.x === xValue && p.y === yValue)) return;
+
+        userPoints.push({ x: xValue, y: yValue });
+        chart.data.datasets[0].data = [...userPoints];
+        chart.update();
+    }
+
+    function checkAnswer() {
+        if (userPoints.length < 2) return;
+
+        attemptedTotal++;
+        const p1 = userPoints[0];
+        const p2 = userPoints[1];
+        
+        const check = (p) => Math.abs(targetEq.a * p.x + targetEq.b * p.y - targetEq.c) < 0.001;
+        const isCorrect = check(p1) && check(p2);
+
+        // --- 延伸直線至邊界 ---
+        if (p1.x === p2.x) {
+            // 鉛直線
+            chart.data.datasets[0].data = [{ x: p1.x, y: -RANGE }, { x: p1.x, y: RANGE }];
+        } else {
+            // 一般斜率 y = mx + k
+            const m = (p2.y - p1.y) / (p2.x - p1.x);
+            const k = p1.y - m * p1.x;
+            chart.data.datasets[0].data = [
+                { x: -RANGE, y: m * -RANGE + k },
+                { x: RANGE, y: m * RANGE + k }
+            ];
+        }
+
+        const feedbackEl = document.getElementById('feedback');
+        if (isCorrect) {
+            feedbackEl.innerText = "✨ 答對了！直線繪製正確。";
+            feedbackEl.style.color = "#27ae60";
+            correctTotal++;
+        } else {
+            feedbackEl.innerText = "❌ 答錯了，請對照紅虛線。";
+            feedbackEl.style.color = "#e74c3c";
+            showCorrectLine();
+        }
+
+        document.getElementById('correct-count').innerText = correctTotal;
+        document.getElementById('total-count').innerText = attemptedTotal;
+        document.getElementById('check-btn').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'inline-block';
+        chart.update();
+    }
+
+    function showCorrectLine() {
+        const { a, b, c } = targetEq;
+        let points = [];
+        if (b !== 0) {
+            points.push({ x: -RANGE, y: (c - a * -RANGE) / b });
+            points.push({ x: RANGE, y: (c - a * RANGE) / b });
+        } else {
+            points.push({ x: c / a, y: -RANGE }, { x: c / a, y: RANGE });
+        }
+        chart.data.datasets[1].data = points;
+        chart.data.datasets[1].hidden = false;
+        chart.update();
+    }
+
+    function resetPoints() {
+        if (document.getElementById('next-btn').style.display === 'inline-block') return;
+        userPoints = [];
+        chart.data.datasets[0].data = [];
+        chart.update();
+        document.getElementById('feedback').innerText = "";
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
