@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>火花輪盤 - 線上抽籤隨機決定器</title>
+    <title>火花輪盤 - 線上抽籤隨機決定器</title>
     <meta name="description" content="火花輪盤是一個華麗的線上抽籤工具，具備動態煙火特效，適合小組抽籤、決定晚餐或活動遊戲使用。">
     <meta name="keywords" content="火花輪盤, 抽籤輪盤, 隨機抽籤, 煙火效果, 幸運輪盤">
     <meta property="og:title" content="火花輪盤 - 決定命運的時候到了">
@@ -19,7 +19,7 @@
             color: white;
             margin: 0;
             padding: 40px 20px;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         #fireworks-canvas {
@@ -36,7 +36,7 @@
         /* 核心佈局：輪盤左，控制台右 */
         .container {
             display: flex;
-            flex-direction: row; /* 水平排列 */
+            flex-direction: row;
             gap: 60px;
             max-width: 1200px;
             width: 100%;
@@ -49,7 +49,7 @@
         .wheel-box {
             position: relative;
             user-select: none;
-            flex-shrink: 0; /* 防止輪盤被擠壓 */
+            flex-shrink: 0;
         }
 
         /* 金色指針 */
@@ -81,7 +81,7 @@
             border-radius: 24px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 400px; /* 限制控制區寬度 */
+            max-width: 400px;
             border: 1px solid rgba(255,255,255,0.1);
         }
 
@@ -90,19 +90,62 @@
             text-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
-        textarea {
+        .form-group {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            color: #bdc3c7;
+            font-weight: bold;
+        }
+
+        select, textarea {
             width: 100%;
-            height: 250px;
             background: rgba(0,0,0,0.5);
             color: #fff;
-            padding: 15px;
+            padding: 12px;
             box-sizing: border-box;
             border: 1px solid #333;
             border-radius: 12px;
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 16px;
             outline: none;
-            line-height: 1.5;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+            line-height: 1.4;
+        }
+
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #ff416c;
+        }
+
+        .checkbox-group label {
+            cursor: pointer;
+            font-size: 15px;
+            color: #fff;
         }
 
         .btn-group {
@@ -128,7 +171,7 @@
         
         button:hover { transform: scale(1.02); filter: brightness(1.1); }
 
-        .result-display { margin-top: 25px; text-align: center; height: 50px; }
+        .result-display { margin-top: 20px; text-align: center; min-height: 50px; }
         #result { font-size: 36px; font-weight: 900; color: #00d2ff; }
 
         /* 手機版自動切換回垂直佈局 */
@@ -149,13 +192,25 @@
         </div>
 
         <div class="control-panel">
-            <textarea id="options">
-小組 1
-小組 2
-小組 3
-小組 4
-小組 5
-小組 6</textarea>
+            <!-- 總數選擇 -->
+            <div class="form-group">
+                <label for="total-count">總組數 / 人數：</label>
+                <select id="total-count" onchange="drawWheel()">
+                    <!-- 由 JS 自動生成 2 ~ 30 選項 -->
+                </select>
+            </div>
+
+            <!-- 移除號碼區 -->
+            <div class="form-group">
+                <label for="removed-numbers">移除號碼：</label>
+                <textarea id="removed-numbers" placeholder="請輸入要排除的號碼，例如: 4, 6" oninput="drawWheel()">4, 6</textarea>
+            </div>
+
+            <!-- 中獎自動移除勾選框 -->
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="remove-winner" checked>
+                <label for="remove-winner">自動將得獎者加入移除區</label>
+            </div>
             
             <div class="btn-group">
                 <button class="btn-spin" onclick="spin(false)">命運旋轉</button>
@@ -171,55 +226,104 @@
     <script>
         const canvas = document.getElementById('wheel');
         const ctx = canvas.getContext('2d');
-        const textarea = document.getElementById('options');
+        const totalSelect = document.getElementById('total-count');
+        const removedTextarea = document.getElementById('removed-numbers');
+        const removeWinnerCheckbox = document.getElementById('remove-winner');
         const resultDiv = document.getElementById('result');
         
         let currentRotation = 0;
         let isSpinning = false;
         const colors = ["#FF3D67", "#3498db", "#FBC02D", "#4CAF50", "#9C27B0", "#FB8C00", "#00BCD4", "#E91E63"];
 
+        // 初始化 2~30 的 Combobox 選項
+        for (let i = 2; i <= 30; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `${i} 人 / 組`;
+            if (i === 30) opt.selected = true;
+            totalSelect.appendChild(opt);
+        }
+
+        // 取得目前有效的抽籤選項列表
+        function getActiveItems() {
+            const total = parseInt(totalSelect.value, 10);
+            const rawRemoved = removedTextarea.value;
+            const removedSet = new Set(
+                rawRemoved.split(/[\n,\s]+/)
+                    .map(s => s.trim())
+                    .filter(s => s !== "")
+            );
+
+            const items = [];
+            for (let i = 1; i <= total; i++) {
+                if (!removedSet.has(String(i))) {
+                    items.push(String(i));
+                }
+            }
+            return items;
+        }
+
         function drawWheel() {
-            const items = textarea.value.split('\n').filter(i => i.trim() !== "");
-            if (items.length === 0) return;
-            const arcSize = (2 * Math.PI) / items.length;
+            const items = getActiveItems();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (items.length === 0) {
+                ctx.fillStyle = "#666";
+                ctx.font = "bold 24px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("無可抽籤項目", 250, 250);
+                return;
+            }
+
+            const arcSize = (2 * Math.PI) / items.length;
+
             items.forEach((text, i) => {
                 const angle = i * arcSize;
+                
+                // 繪製扇形
                 ctx.beginPath();
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.moveTo(250, 250);
-                ctx.arc(250, 250, 245, angle, angle + arcSize);
+                ctx.arc(250, 250, 240, angle, angle + arcSize);
                 ctx.fill();
+
+                // 邊框
+                ctx.strokeStyle = "rgba(255,255,255,0.2)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 繪製數字文字
                 ctx.save();
                 ctx.translate(250, 250);
                 ctx.rotate(angle + arcSize / 2);
                 ctx.textAlign = "right";
                 ctx.fillStyle = "white";
-                ctx.font = "bold 20px sans-serif";
-                ctx.fillText(text, 230, 10);
+                ctx.font = "bold 22px sans-serif";
+                ctx.fillText(text, 220, 8);
                 ctx.restore();
             });
         }
 
         function spin(isQuick) {
             if (isSpinning) return;
-            const items = textarea.value.split('\n').filter(i => i.trim() !== "");
-            if (items.length < 2) return alert("請輸入至少兩個選項");
+            const items = getActiveItems();
+            if (items.length < 1) return alert("請至少留有一個可抽籤的號碼！");
 
             isSpinning = true;
             resultDiv.innerText = isQuick ? "" : "祝你好運...";
             
             const extraDegree = Math.floor(Math.random() * 360);
-            const totalSpins = (isQuick ? 0 : 10 * 360) + extraDegree; 
+            const totalSpins = (isQuick ? 0 : 8 * 360) + extraDegree; 
             currentRotation += totalSpins;
 
             if (isQuick) {
+                // 快速結果：清除先前累積的煙火顆粒，避免過多重疊
+                particles = [];
                 canvas.style.transition = "none";
                 canvas.style.transform = `rotate(${currentRotation}deg)`;
-                canvas.offsetHeight; 
-                canvas.style.transition = "transform 6s cubic-bezier(0.1, 0.8, 0.1, 1)";
                 showResult(items);
             } else {
+                canvas.style.transition = "transform 6s cubic-bezier(0.1, 0.8, 0.1, 1)";
                 canvas.style.transform = `rotate(${currentRotation}deg)`;
                 setTimeout(() => showResult(items), 6000);
             }
@@ -227,53 +331,86 @@
 
         function showResult(items) {
             isSpinning = false;
-            const actualDegree = (360 - (currentRotation % 360) + 270) % 360;
-            const index = Math.floor(actualDegree / (360 / items.length));
-            resultDiv.innerText = "⭐ " + items[index % items.length];
+            
+            // 計算正上方 270 度指針所指的項目
+            const normalizedDegree = (360 - (currentRotation % 360) + 270) % 360;
+            const index = Math.floor(normalizedDegree / (360 / items.length));
+            const winner = items[index % items.length];
+
+            resultDiv.innerText = "⭐ " + winner;
             launchFireworks();
+
+            // 若勾選「移除中獎」，將得獎號碼自動加入移除號碼區
+            if (removeWinnerCheckbox.checked) {
+                const currentVal = removedTextarea.value.trim();
+                if (currentVal) {
+                    removedTextarea.value = currentVal + ", " + winner;
+                } else {
+                    removedTextarea.value = winner;
+                }
+                setTimeout(() => {
+                    drawWheel();
+                }, 500);
+            }
         }
 
-        // --- 煙火動畫 ---
+        // --- 煙火動畫（大顆粒火花）---
         const fwCanvas = document.getElementById('fireworks-canvas');
         const fwCtx = fwCanvas.getContext('2d');
         let particles = [];
-        function resizeFw() { fwCanvas.width = window.innerWidth; fwCanvas.height = window.innerHeight; }
+
+        function resizeFw() { 
+            fwCanvas.width = window.innerWidth; 
+            fwCanvas.height = window.innerHeight; 
+        }
         window.addEventListener('resize', resizeFw);
         resizeFw();
 
         class Particle {
             constructor(x, y, color) {
-                this.x = x; this.y = y; this.color = color;
+                this.x = x; 
+                this.y = y; 
+                this.color = color;
                 const angle = Math.random() * Math.PI * 2;
-                const force = Math.random() * 15 + 5; 
+                const force = Math.random() * 12 + 4; 
                 this.velocity = { x: Math.cos(angle) * force, y: Math.sin(angle) * force };
-                this.alpha = 1; this.friction = 0.95; this.gravity = 0.12;
+                this.alpha = 1; 
+                this.friction = 0.95; 
+                this.gravity = 0.15;
+                // 放大顆粒半徑至 4 ~ 10px
+                this.radius = Math.random() * 6 + 4;
             }
             draw() {
                 fwCtx.save();
                 fwCtx.globalAlpha = this.alpha;
                 fwCtx.beginPath(); 
-                fwCtx.arc(this.x, this.y, Math.random() * 4 + 1, 0, Math.PI * 2);
+                fwCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 fwCtx.fillStyle = this.color; 
-                fwCtx.shadowBlur = 15;
+                fwCtx.shadowBlur = 18; // 增強光暈
                 fwCtx.shadowColor = this.color;
                 fwCtx.fill();
                 fwCtx.restore();
             }
             update() {
-                this.velocity.x *= this.friction; this.velocity.y *= this.friction;
-                this.velocity.y += this.gravity; this.x += this.velocity.x; this.y += this.velocity.y;
-                this.alpha -= 0.01;
+                this.velocity.x *= this.friction; 
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity; 
+                this.x += this.velocity.x; 
+                this.y += this.velocity.y;
+                this.alpha -= 0.025; // 保持原本淡出速度
             }
         }
 
         function launchFireworks() {
-            for(let i=0; i<10; i++) {
+            // 每波發射 120 顆大火花，分 4 波放煙火
+            for(let i = 0; i < 4; i++) {
                 setTimeout(() => {
                     const x = (Math.random() * 0.8 + 0.1) * fwCanvas.width;
-                    const y = (Math.random() * 0.5 + 0.1) * fwCanvas.height;
-                    const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
-                    for(let j=0; j<120; j++) particles.push(new Particle(x, y, color));
+                    const y = (Math.random() * 0.4 + 0.1) * fwCanvas.height;
+                    const color = `hsl(${Math.random() * 360}, 100%, 65%)`;
+                    for(let j = 0; j < 120; j++) {
+                        particles.push(new Particle(x, y, color));
+                    }
                 }, i * 150);
             }
         }
@@ -282,12 +419,15 @@
             requestAnimationFrame(animate);
             fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
             particles.forEach((p, i) => { 
-                if (p.alpha <= 0) particles.splice(i, 1);
-                else { p.update(); p.draw(); }
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else { 
+                    p.update(); 
+                    p.draw(); 
+                }
             });
         }
 
-        textarea.addEventListener('input', drawWheel);
         drawWheel();
         animate();
     </script>
