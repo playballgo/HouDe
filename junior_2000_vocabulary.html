@@ -1,0 +1,2503 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國中英語單字庫 - 國中單字王 2000 總複習測驗</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    body.dark-mode {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s; min-height: 100vh; padding: 20px 10px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 0; border-bottom: 2px solid var(--border-color); }
+    h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; color: var(--primary); }
+    .theme-toggle { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-main); }
+
+    .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border-color); }
+    
+    .config-panel { display: flex; flex-direction: column; gap: 15px; }
+    .config-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .input-group { display: flex; align-items: center; gap: 8px; }
+    input[type="number"] { width: 80px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); text-align: center; }
+    
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn:hover { background: var(--border-color); }
+    .btn-primary { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; font-size: 1.1rem; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-active { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-danger { background: var(--danger); color: white; border: none; }
+    
+    .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+    .badge-primary { background: #e0e7ff; color: #3730a3; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+
+    .quiz-progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .progress-bar-bg { width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+    .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+
+    .word-display { text-align: center; margin: 20px 0; }
+    .word-title { font-size: 2.2rem; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .audio-btn { background: #e0e7ff; color: var(--primary); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+    
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    @media (max-width: 500px) { .options-grid { grid-template-columns: 1fr; } }
+    .option-btn { padding: 15px; border-radius: 8px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 1rem; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+    .option-btn:hover { border-color: var(--primary); background: var(--bg-color); }
+    .option-btn.selected { border-color: var(--primary); background: #e0e7ff; color: #3730a3; }
+
+    .spelling-input { width: 100%; padding: 12px; font-size: 1.2rem; border-radius: 8px; border: 2px solid var(--border-color); background: var(--bg-color); color: var(--text-main); text-align: center; margin-top: 15px; }
+
+    .result-item { padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--border-color); background: var(--bg-color); }
+    .result-item.correct { border-left-color: var(--success); }
+    .result-item.wrong { border-left-color: var(--danger); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📘 國中英語單字庫</h1>
+      <button class="theme-toggle" id="theme-btn">🌙</button>
+    </header>
+
+    <!-- 主選單設定卡片 -->
+    <div class="card config-panel">
+      <h3>⚙️ 測驗與學習設定</h3>
+      <div class="config-row">
+        <div class="input-group">
+          <label>天數範圍 (Day 1 - 495):</label>
+          <input type="number" id="start-day" min="1" max="495" value="1">
+          <span>~</span>
+          <input type="number" id="end-day" min="1" max="495" value="495">
+        </div>
+      </div>
+      <div class="config-row">
+        <label>模式選擇：</label>
+        <div class="btn-group">
+          <button class="btn btn-active" id="mode-choice">選擇題</button>
+          <button class="btn" id="mode-spelling">拼字測驗</button>
+          <button class="btn" id="mode-flashcard">單字卡瀏覽</button>
+          <button class="btn btn-danger" id="mode-mistakes">⚠️ 錯題本 (<span id="mistake-count">0</span>)</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="start-btn">🔀 隨機抽取 10 題開始</button>
+    </div>
+
+    <!-- 測驗進行區塊 -->
+    <div class="card hidden" id="quiz-section">
+      <div class="quiz-progress">
+        <div><span id="quiz-current-step">題目 1 / 10</span></div>
+        <div class="badge badge-primary" id="quiz-status-badge">答題中 (結束後統一計分)</div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="word-display">
+        <span class="badge badge-primary" id="word-pos">n.</span>
+        <span class="badge badge-primary" id="word-day">Day 1</span>
+        <div class="word-title">
+          <span id="target-word">apple</span>
+          <button class="audio-btn" id="quiz-speak-btn">🔊</button>
+        </div>
+      </div>
+
+      <!-- 選擇題面板 -->
+      <div class="options-grid" id="options-container"></div>
+
+      <!-- 拼字面板 -->
+      <div class="hidden" id="spelling-container">
+        <input type="text" class="spelling-input" id="spelling-answer" placeholder="請輸入英文單字..." autocomplete="off">
+      </div>
+
+      <button class="btn btn-primary" id="next-btn" style="margin-top: 20px;">下一題 ➔</button>
+    </div>
+
+    <!-- 單字卡模式區塊 -->
+    <div class="card hidden" id="flashcard-section" style="text-align: center;">
+      <div style="margin-bottom: 10px;">
+        <span class="badge badge-primary" id="fc-pos">n.</span>
+        <span class="badge badge-primary" id="fc-day">Day 1</span>
+        <span class="badge badge-primary" id="fc-count">1 / 1</span>
+      </div>
+      <div class="word-title" style="font-size: 2.5rem; margin: 20px 0;">
+        <span id="fc-word">apple</span>
+        <button class="audio-btn" id="fc-speak-btn">🔊</button>
+      </div>
+      <div id="fc-meaning" style="font-size: 1.5rem; color: var(--primary); font-weight: bold; min-height: 2em; cursor: pointer;">
+        點擊顯示中文解釋
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+        <button class="btn" id="fc-prev-btn">⬅️ 上一個</button>
+        <button class="btn" id="fc-next-btn">下一步 ➡️</button>
+      </div>
+    </div>
+
+    <!-- 測驗結果總結區塊 -->
+    <div class="card hidden" id="result-section">
+      <h2 style="text-align: center; margin-bottom: 10px;">🎉 測驗完成！</h2>
+      <p style="text-align: center; font-size: 1.2rem; margin-bottom: 20px;">
+        得分：<span id="final-score" style="color:var(--primary); font-weight:bold;">0</span> / <span id="final-total">10</span>
+      </p>
+
+      <h3 style="margin-bottom: 15px;">詳細答題明細與解答：</h3>
+      <div id="result-list"></div>
+
+      <button class="btn btn-primary" id="restart-btn" style="margin-top: 20px;">🔄 再測驗一次</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== 單字資料：[編號, 單字, 詞性, 中文]，每 4 個單字為 1 天（Day = ceil(編號/4)），共 1979 字、Day 1–495 =====
+    const WORD_DATA = [
+  [1, "a few", "限定詞", "一些（用於可數）"],
+  [2, "a little", "限定詞", "一點（用於不可數）"],
+  [3, "a lot", "副詞", "很多"],
+  [4, "able", "形容詞", "能夠的"],
+  [5, "about", "介系詞", "關於；大約"],
+  [6, "above", "介系詞", "在…上面"],
+  [7, "abroad", "副詞", "在國外"],
+  [8, "absent", "形容詞", "缺席的"],
+  [9, "accept", "動詞", "接受"],
+  [10, "accident", "名詞", "事故"],
+  [11, "across", "介系詞", "橫越"],
+  [12, "act", "動詞", "表演；行動"],
+  [13, "action", "名詞", "行動"],
+  [14, "active", "形容詞", "活躍的"],
+  [15, "activity", "名詞", "活動"],
+  [16, "actor", "名詞", "男演員"],
+  [17, "actress", "名詞", "女演員"],
+  [18, "actually", "副詞", "實際上"],
+  [19, "add", "動詞", "增加"],
+  [20, "admire", "動詞", "欽佩"],
+  [21, "adult", "名詞", "成年人"],
+  [22, "advertisement", "名詞", "廣告"],
+  [23, "advice", "名詞", "建議"],
+  [24, "advise", "動詞", "建議"],
+  [25, "affect", "動詞", "影響"],
+  [26, "afraid", "形容詞", "害怕的"],
+  [27, "after", "介系詞", "在…之後"],
+  [28, "afternoon", "名詞", "下午"],
+  [29, "again", "副詞", "再次"],
+  [30, "against", "介系詞", "反對；靠著"],
+  [31, "age", "名詞", "年齡；時代"],
+  [32, "ago", "副詞", "以前"],
+  [33, "agree", "動詞", "同意"],
+  [34, "ahead", "副詞", "在前面"],
+  [35, "aim", "名詞", "目標"],
+  [36, "air", "名詞", "空氣"],
+  [37, "air conditioner", "名詞", "空調"],
+  [38, "airlines", "名詞", "航空公司"],
+  [39, "airplane", "名詞", "飛機"],
+  [40, "airport", "名詞", "機場"],
+  [41, "alarm", "名詞", "鬧鐘；警報"],
+  [42, "alarm clock", "名詞", "鬧鐘"],
+  [43, "album", "名詞", "相冊；專輯"],
+  [44, "alike", "形容詞", "相似的"],
+  [45, "alive", "形容詞", "活著的"],
+  [46, "all", "代名詞", "全部；所有"],
+  [47, "allow", "動詞", "允許"],
+  [48, "almost", "副詞", "幾乎"],
+  [49, "along", "介系詞", "沿著"],
+  [50, "aloud", "副詞", "大聲地"],
+  [51, "already", "副詞", "已經"],
+  [52, "always", "副詞", "總是"],
+  [53, "ambulance", "名詞", "救護車"],
+  [54, "American", "名詞", "美國人"],
+  [55, "among", "介系詞", "在…之中（三者以上）"],
+  [56, "amount", "名詞", "數量"],
+  [57, "ancient", "形容詞", "古代的"],
+  [58, "and", "連接詞", "和；並且"],
+  [59, "angel", "名詞", "天使"],
+  [60, "anger", "名詞", "憤怒"],
+  [61, "angle", "名詞", "角度"],
+  [62, "angry", "形容詞", "生氣的"],
+  [63, "animal", "名詞", "動物"],
+  [64, "ankle", "名詞", "腳踝"],
+  [65, "another", "代名詞", "另一個"],
+  [66, "answer", "動詞", "回答"],
+  [67, "ant", "名詞", "螞蟻"],
+  [68, "any", "限定詞", "任何"],
+  [69, "any", "代名詞", "任何"],
+  [70, "anyone", "代名詞", "任何人"],
+  [71, "anything", "代名詞", "任何事"],
+  [72, "anywhere", "副詞", "任何地方"],
+  [73, "apartment", "名詞", "公寓"],
+  [74, "apologize", "動詞", "道歉"],
+  [75, "appear", "動詞", "出現"],
+  [76, "apple", "名詞", "蘋果"],
+  [77, "appreciate", "動詞", "欣賞；感謝"],
+  [78, "April", "名詞", "四月"],
+  [79, "area", "名詞", "區域"],
+  [80, "argue", "動詞", "爭論"],
+  [81, "arm", "名詞", "手臂"],
+  [82, "armchair", "名詞", "扶手椅"],
+  [83, "army", "名詞", "軍隊"],
+  [84, "arrange", "動詞", "安排"],
+  [85, "arrive", "動詞", "到達"],
+  [86, "art", "名詞", "藝術"],
+  [87, "artist", "名詞", "藝術家"],
+  [88, "Asian", "名詞", "亞洲人"],
+  [89, "ask", "動詞", "詢問"],
+  [90, "asleep", "形容詞", "睡著的"],
+  [91, "assistant", "名詞", "助理"],
+  [92, "assume", "動詞", "假設"],
+  [93, "at", "介系詞", "在（地點、時間點）"],
+  [94, "attack", "動詞", "攻擊"],
+  [95, "attention", "名詞", "注意力"],
+  [96, "August", "名詞", "八月"],
+  [97, "aunt", "名詞", "阿姨"],
+  [98, "autumn", "名詞", "秋天"],
+  [99, "available", "形容詞", "可用的；有空的"],
+  [100, "avoid", "動詞", "避免"],
+  [101, "away", "副詞", "離開"],
+  [102, "baby", "名詞", "嬰兒"],
+  [103, "baby sitter", "名詞", "保母"],
+  [104, "back", "名詞", "背部"],
+  [105, "back", "形容詞", "後面的"],
+  [106, "backpack", "名詞", "背包"],
+  [107, "backward", "副詞", "向後"],
+  [108, "bad", "形容詞", "壞的"],
+  [109, "badminton", "名詞", "羽毛球"],
+  [110, "bake", "動詞", "烘烤"],
+  [111, "bakery", "名詞", "麵包店"],
+  [112, "balcony", "名詞", "陽台"],
+  [113, "ball", "名詞", "球"],
+  [114, "balloon", "名詞", "氣球"],
+  [115, "banana", "名詞", "香蕉"],
+  [116, "band", "名詞", "樂團"],
+  [117, "band", "名詞", "樂隊；帶子"],
+  [118, "bank", "名詞", "銀行"],
+  [119, "bank", "名詞", "河岸"],
+  [120, "barbecue", "動詞", "烤肉"],
+  [121, "barber", "名詞", "理髮師"],
+  [122, "bark", "動詞", "吠叫"],
+  [123, "base", "名詞", "基礎；基地"],
+  [124, "baseball", "名詞", "棒球"],
+  [125, "basement", "名詞", "地下室"],
+  [126, "basic", "形容詞", "基本的"],
+  [127, "basket", "名詞", "籃子"],
+  [128, "basketball", "名詞", "籃球"],
+  [129, "bat", "名詞", "蝙蝠"],
+  [130, "bath", "名詞", "浴缸"],
+  [131, "bathe", "動詞", "洗澡"],
+  [132, "bathroom", "名詞", "浴室"],
+  [133, "beach", "名詞", "海灘"],
+  [134, "bean", "名詞", "豆子"],
+  [135, "bear", "名詞", "熊"],
+  [136, "beard", "名詞", "鬍鬚"],
+  [137, "beat", "動詞", "打擊"],
+  [138, "beautiful", "形容詞", "美麗的"],
+  [139, "beauty", "名詞", "美麗"],
+  [140, "because", "連接詞", "因為"],
+  [141, "become", "動詞", "變成"],
+  [142, "bed", "名詞", "床"],
+  [143, "bedroom", "名詞", "臥室"],
+  [144, "bee", "名詞", "蜜蜂"],
+  [145, "beef", "名詞", "牛肉"],
+  [146, "beer", "名詞", "啤酒"],
+  [147, "before", "介系詞", "在…之前"],
+  [148, "begin", "動詞", "開始"],
+  [149, "beginner", "名詞", "初學者"],
+  [150, "beginning", "名詞", "開始"],
+  [151, "behave", "動詞", "守規矩"],
+  [152, "behind", "介系詞", "在…後面"],
+  [153, "believe", "動詞", "相信"],
+  [154, "bell", "名詞", "鈴鐺"],
+  [155, "belong", "動詞", "屬於"],
+  [156, "below", "介系詞", "在…下面"],
+  [157, "belt", "名詞", "皮帶"],
+  [158, "bench", "名詞", "長凳"],
+  [159, "beside", "介系詞", "在…旁邊"],
+  [160, "besides", "副詞", "此外；而且"],
+  [161, "between", "介系詞", "在…之間（兩者）"],
+  [162, "beyond", "介系詞", "超越；在…另一邊"],
+  [163, "bicycle", "名詞", "腳踏車"],
+  [164, "big", "形容詞", "大的"],
+  [165, "bill", "名詞", "帳單；紙鈔"],
+  [166, "biology", "名詞", "生物"],
+  [167, "bird", "名詞", "鳥"],
+  [168, "birthday", "名詞", "生日"],
+  [169, "bite", "動詞", "咬"],
+  [170, "bitter", "形容詞", "苦的"],
+  [171, "black", "名詞", "黑色"],
+  [172, "blackboard", "名詞", "黑板"],
+  [173, "blame", "動詞", "責備"],
+  [174, "blank", "名詞", "空白"],
+  [175, "blanket", "名詞", "毯子"],
+  [176, "bless", "動詞", "祝福"],
+  [177, "blind", "形容詞", "失明的"],
+  [178, "block", "名詞", "街區"],
+  [179, "blood", "名詞", "血液"],
+  [180, "blouse", "名詞", "女裝上衣"],
+  [181, "blow", "動詞", "吹"],
+  [182, "blue", "名詞", "藍色"],
+  [183, "board", "名詞", "板子"],
+  [184, "boat", "名詞", "船"],
+  [185, "body", "名詞", "身體"],
+  [186, "boil", "動詞", "煮沸"],
+  [187, "bomb", "名詞", "炸彈"],
+  [188, "bone", "名詞", "骨頭"],
+  [189, "book", "名詞", "書本"],
+  [190, "bookcase", "名詞", "書櫃"],
+  [191, "bookstore", "名詞", "書店"],
+  [192, "boring", "形容詞", "令人無聊的"],
+  [193, "borrow", "動詞", "借入"],
+  [194, "boss", "名詞", "老闆"],
+  [195, "both", "限定詞", "兩者都"],
+  [196, "both", "代名詞", "兩者"],
+  [197, "bother", "動詞", "打擾"],
+  [198, "bottle", "名詞", "瓶"],
+  [199, "bottom", "名詞", "底部"],
+  [200, "bow", "動詞", "鞠躬"],
+  [201, "bowl", "名詞", "碗"],
+  [202, "bowling", "名詞", "保齡球"],
+  [203, "box", "名詞", "盒子"],
+  [204, "boy", "名詞", "男孩"],
+  [205, "branch", "名詞", "樹枝；分支"],
+  [206, "brave", "形容詞", "勇敢的"],
+  [207, "bread", "名詞", "麵包"],
+  [208, "break", "動詞", "打破"],
+  [209, "breakfast", "名詞", "早餐"],
+  [210, "brick", "名詞", "磚塊"],
+  [211, "bridge", "名詞", "橋樑"],
+  [212, "bright", "形容詞", "明亮的；聰明的"],
+  [213, "bring", "動詞", "帶來"],
+  [214, "broad", "形容詞", "寬廣的"],
+  [215, "broadcast", "動詞", "廣播"],
+  [216, "brother", "名詞", "兄弟"],
+  [217, "brown", "名詞", "棕色"],
+  [218, "brunch", "名詞", "早午餐"],
+  [219, "brush", "動詞", "刷"],
+  [220, "bucket", "名詞", "水桶"],
+  [221, "buffet", "名詞", "自助餐"],
+  [222, "bug", "名詞", "小蟲"],
+  [223, "build", "動詞", "建造"],
+  [224, "building", "名詞", "建築物"],
+  [225, "bun", "名詞", "小圓麵包"],
+  [226, "bundle", "名詞", "捆；束"],
+  [227, "burn", "動詞", "燒焦"],
+  [228, "burst", "動詞", "爆發"],
+  [229, "bus", "名詞", "公車"],
+  [230, "bus stop", "名詞", "公車站"],
+  [231, "business", "名詞", "商業；生意"],
+  [232, "businessman", "名詞", "商人"],
+  [233, "busy", "形容詞", "忙碌的"],
+  [234, "but", "連接詞", "但是"],
+  [235, "butter", "名詞", "奶油"],
+  [236, "butterfly", "名詞", "蝴蝶"],
+  [237, "button", "名詞", "鈕扣"],
+  [238, "buy", "動詞", "購買"],
+  [239, "by", "介系詞", "藉由；在…旁邊"],
+  [240, "cabbage", "名詞", "高麗菜"],
+  [241, "cable", "名詞", "電纜"],
+  [242, "cafeteria", "名詞", "自助餐廳"],
+  [243, "cage", "名詞", "籠子"],
+  [244, "cake", "名詞", "蛋糕"],
+  [245, "calendar", "名詞", "日曆"],
+  [246, "call", "動詞", "打電話；呼叫"],
+  [247, "calm", "動詞", "使冷靜"],
+  [248, "camera", "名詞", "相機"],
+  [249, "camp", "動詞", "露營"],
+  [250, "campus", "名詞", "校園"],
+  [251, "can", "名詞", "罐頭"],
+  [252, "cancel", "動詞", "取消"],
+  [253, "cancer", "名詞", "癌症"],
+  [254, "candle", "名詞", "蠟燭"],
+  [255, "candy", "名詞", "糖果"],
+  [256, "cap", "名詞", "棒球帽"],
+  [257, "captain", "名詞", "隊長；船長"],
+  [258, "car", "名詞", "汽車"],
+  [259, "card", "名詞", "卡片"],
+  [260, "care", "動詞", "關心"],
+  [261, "careful", "形容詞", "小心的"],
+  [262, "careless", "形容詞", "粗心的"],
+  [263, "carpet", "名詞", "地毯"],
+  [264, "carrot", "名詞", "胡蘿蔔"],
+  [265, "carry", "動詞", "攜帶"],
+  [266, "cartoon", "名詞", "卡通"],
+  [267, "case", "名詞", "案例；箱子"],
+  [268, "cash", "名詞", "現金"],
+  [269, "castle", "名詞", "城堡"],
+  [270, "cat", "名詞", "貓"],
+  [271, "catch", "動詞", "抓住"],
+  [272, "cause", "名詞", "原因"],
+  [273, "ceiling", "名詞", "天花板"],
+  [274, "celebrate", "動詞", "慶祝"],
+  [275, "cellphone", "名詞", "手機"],
+  [276, "cent", "名詞", "分（貨幣單位）"],
+  [277, "center", "名詞", "中心"],
+  [278, "centimeter", "名詞", "公分"],
+  [279, "century", "名詞", "世紀"],
+  [280, "cereal", "名詞", "穀物麥片"],
+  [281, "certain", "形容詞", "確定的"],
+  [282, "chair", "名詞", "椅子"],
+  [283, "chalk", "名詞", "粉筆"],
+  [284, "chance", "名詞", "機會"],
+  [285, "change", "名詞", "零錢"],
+  [286, "channel", "名詞", "頻道；海峽"],
+  [287, "character", "名詞", "角色；性格"],
+  [288, "charge", "動詞", "收費"],
+  [289, "chart", "名詞", "圖表"],
+  [290, "chase", "動詞", "追逐"],
+  [291, "cheap", "形容詞", "便宜的"],
+  [292, "cheat", "動詞", "欺騙"],
+  [293, "check", "動詞", "檢查"],
+  [294, "cheer", "名詞", "歡呼"],
+  [295, "cheerleader", "名詞", "啦啦隊"],
+  [296, "cheese", "名詞", "起司"],
+  [297, "chemistry", "名詞", "化學"],
+  [298, "chess", "名詞", "西洋棋"],
+  [299, "chicken", "名詞", "雞肉"],
+  [300, "chicken", "名詞", "雞"],
+  [301, "child", "名詞", "小孩"],
+  [302, "childhood", "名詞", "童年"],
+  [303, "childish", "形容詞", "幼稚的"],
+  [304, "childlike", "形容詞", "孩子般的"],
+  [305, "chin", "名詞", "下巴"],
+  [306, "Chinese", "名詞", "中文"],
+  [307, "Chinese New Year", "名詞", "春節"],
+  [308, "chocolate", "名詞", "巧克力"],
+  [309, "choice", "名詞", "選擇"],
+  [310, "choose", "動詞", "選擇"],
+  [311, "chopsticks", "名詞", "筷子"],
+  [312, "Christmas", "名詞", "聖誕節"],
+  [313, "chubby", "形容詞", "圓胖的"],
+  [314, "church", "名詞", "教堂"],
+  [315, "circle", "名詞", "圓形"],
+  [316, "city", "名詞", "城市"],
+  [317, "clap", "動詞", "拍手"],
+  [318, "class leader", "名詞", "班長"],
+  [319, "classical", "形容詞", "古典的"],
+  [320, "classmate", "名詞", "同學"],
+  [321, "classroom", "名詞", "教室"],
+  [322, "clean", "動詞", "清潔"],
+  [323, "clear", "形容詞", "晴朗的"],
+  [324, "clerk", "名詞", "店員；職員"],
+  [325, "climate", "名詞", "氣候"],
+  [326, "climb", "動詞", "攀爬"],
+  [327, "clock", "名詞", "時鐘"],
+  [328, "close", "動詞", "關閉"],
+  [329, "closet", "名詞", "衣櫥"],
+  [330, "clothes", "名詞", "衣服（總稱）"],
+  [331, "cloud", "名詞", "雲"],
+  [332, "cloudy", "形容詞", "多雲的"],
+  [333, "club", "名詞", "俱樂部"],
+  [334, "coach", "名詞", "教練"],
+  [335, "coast", "名詞", "海岸"],
+  [336, "coat", "名詞", "外套"],
+  [337, "cockroach", "名詞", "蟑螂"],
+  [338, "coffee", "名詞", "咖啡"],
+  [339, "coin", "名詞", "硬幣"],
+  [340, "cola", "名詞", "可樂"],
+  [341, "cold", "名詞", "感冒"],
+  [342, "cold", "形容詞", "寒冷的"],
+  [343, "collect", "動詞", "收集"],
+  [344, "color", "名詞", "顏色"],
+  [345, "colorful", "形容詞", "多彩的"],
+  [346, "comb", "名詞", "梳子"],
+  [347, "come", "動詞", "來"],
+  [348, "comfortable", "形容詞", "舒服的"],
+  [349, "comic", "名詞", "漫畫"],
+  [350, "command", "名詞", "命令"],
+  [351, "comment", "動詞", "評論"],
+  [352, "common", "形容詞", "普通的；常見的"],
+  [353, "company", "名詞", "公司"],
+  [354, "compare", "動詞", "比較"],
+  [355, "complain", "動詞", "抱怨"],
+  [356, "complete", "動詞", "完成"],
+  [357, "complete", "形容詞", "完整的"],
+  [358, "computer", "名詞", "電腦"],
+  [359, "computer game", "名詞", "電腦遊戲"],
+  [360, "concern", "動詞", "關心；涉及"],
+  [361, "confident", "形容詞", "有自信的"],
+  [362, "confuse", "動詞", "混淆"],
+  [363, "congratulation", "名詞", "祝賀"],
+  [364, "consider", "動詞", "考慮"],
+  [365, "considerate", "形容詞", "體貼的"],
+  [366, "contact lens", "名詞", "隱形眼鏡"],
+  [367, "continue", "動詞", "繼續"],
+  [368, "contract", "名詞", "合約"],
+  [369, "control", "動詞", "控制"],
+  [370, "convenience store", "名詞", "便利商店"],
+  [371, "convenient", "形容詞", "方便的"],
+  [372, "conversation", "名詞", "對話"],
+  [373, "cook", "動詞", "烹調"],
+  [374, "cook", "名詞", "廚師"],
+  [375, "cookie", "名詞", "餅乾"],
+  [376, "cool", "形容詞", "酷的"],
+  [377, "cool", "形容詞", "涼爽的"],
+  [378, "copy", "動詞", "複製"],
+  [379, "corn", "名詞", "玉米"],
+  [380, "corner", "名詞", "角落"],
+  [381, "correct", "動詞", "改正"],
+  [382, "correct", "形容詞", "正確的"],
+  [383, "cost", "動詞", "花費"],
+  [384, "cotton", "名詞", "棉"],
+  [385, "couch", "名詞", "長沙發"],
+  [386, "cough", "名詞", "咳嗽"],
+  [387, "count", "動詞", "數數"],
+  [388, "country", "名詞", "國家；鄉下"],
+  [389, "couple", "名詞", "情侶；夫妻"],
+  [390, "courage", "名詞", "勇氣"],
+  [391, "course", "名詞", "課程"],
+  [392, "court", "名詞", "法庭；球場"],
+  [393, "cousin", "名詞", "堂(表)兄弟姊妹"],
+  [394, "cover", "動詞", "覆蓋"],
+  [395, "cow", "名詞", "牛"],
+  [396, "crab", "名詞", "螃蟹"],
+  [397, "crayon", "名詞", "蠟筆"],
+  [398, "crazy", "形容詞", "瘋狂的"],
+  [399, "cream", "名詞", "鮮奶油"],
+  [400, "create", "動詞", "創造"],
+  [401, "credit card", "名詞", "信用卡"],
+  [402, "crime", "名詞", "犯罪"],
+  [403, "cross", "動詞", "穿越"],
+  [404, "crowd", "名詞", "人群"],
+  [405, "crowded", "形容詞", "擁擠的"],
+  [406, "cruel", "形容詞", "殘忍的"],
+  [407, "cry", "動詞", "哭"],
+  [408, "culture", "名詞", "文化"],
+  [409, "culture center", "名詞", "文化中心"],
+  [410, "cup", "名詞", "杯子"],
+  [411, "cup", "名詞", "杯"],
+  [412, "cure", "動詞", "治癒"],
+  [413, "curious", "形容詞", "好奇的"],
+  [414, "current", "形容詞", "當前的"],
+  [415, "curtain", "名詞", "窗簾"],
+  [416, "curve", "名詞", "曲線"],
+  [417, "custom", "名詞", "習俗"],
+  [418, "customer", "名詞", "顧客"],
+  [419, "cut", "動詞", "切割"],
+  [420, "cute", "形容詞", "可愛的"],
+  [421, "daily", "形容詞", "每日的"],
+  [422, "damage", "名詞", "損害"],
+  [423, "dance", "動詞", "跳舞"],
+  [424, "danger", "名詞", "危險"],
+  [425, "dangerous", "形容詞", "危險的"],
+  [426, "dark", "形容詞", "黑暗的"],
+  [427, "date", "動詞", "約會"],
+  [428, "daughter", "名詞", "女兒"],
+  [429, "dawn", "名詞", "黎明"],
+  [430, "dead", "形容詞", "死的"],
+  [431, "deaf", "形容詞", "失聰的"],
+  [432, "deal", "動詞", "處理"],
+  [433, "dear", "形容詞", "親愛的；昂貴的"],
+  [434, "death", "名詞", "死亡"],
+  [435, "debate", "名詞", "辯論"],
+  [436, "December", "名詞", "十二月"],
+  [437, "decide", "動詞", "決定"],
+  [438, "decision", "名詞", "決定"],
+  [439, "decorate", "動詞", "裝飾"],
+  [440, "decrease", "動詞", "減少"],
+  [441, "deep", "形容詞", "深的"],
+  [442, "deer", "名詞", "鹿"],
+  [443, "define", "動詞", "定義"],
+  [444, "degree", "名詞", "度數"],
+  [445, "delicious", "形容詞", "美味的"],
+  [446, "deliver", "動詞", "遞送"],
+  [447, "dentist", "名詞", "牙醫"],
+  [448, "department", "名詞", "部門；系"],
+  [449, "department store", "名詞", "百貨公司"],
+  [450, "depend", "動詞", "依賴"],
+  [451, "describe", "動詞", "描述"],
+  [452, "desert", "名詞", "沙漠"],
+  [453, "design", "動詞", "設計"],
+  [454, "desire", "名詞", "慾望"],
+  [455, "desk", "名詞", "書桌"],
+  [456, "dessert", "名詞", "甜點"],
+  [457, "detect", "動詞", "偵測"],
+  [458, "develop", "動詞", "發展"],
+  [459, "dial", "動詞", "撥號"],
+  [460, "diamond", "名詞", "鑽石"],
+  [461, "diary", "名詞", "日記"],
+  [462, "dictionary", "名詞", "字典"],
+  [463, "die", "動詞", "死亡"],
+  [464, "diet", "名詞", "飲食；節食"],
+  [465, "difference", "名詞", "差異"],
+  [466, "different", "形容詞", "不同的"],
+  [467, "difficult", "形容詞", "困難的"],
+  [468, "difficulty", "名詞", "困難"],
+  [469, "dig", "動詞", "挖掘"],
+  [470, "diligent", "形容詞", "勤奮的"],
+  [471, "dining room", "名詞", "餐廳"],
+  [472, "dinner", "名詞", "晚餐"],
+  [473, "dinosaur", "名詞", "恐龍"],
+  [474, "diplomat", "名詞", "外交官"],
+  [475, "direct", "動詞", "指導"],
+  [476, "direction", "名詞", "方向"],
+  [477, "dirty", "形容詞", "骯髒的"],
+  [478, "disappear", "動詞", "消失"],
+  [479, "discover", "動詞", "發現"],
+  [480, "discuss", "動詞", "討論"],
+  [481, "discussion", "名詞", "討論"],
+  [482, "dish", "名詞", "盤子"],
+  [483, "dishonest", "形容詞", "不誠實的"],
+  [484, "distance", "名詞", "距離"],
+  [485, "distant", "形容詞", "遙遠的"],
+  [486, "divide", "動詞", "分割"],
+  [487, "dizzy", "形容詞", "頭暈的"],
+  [488, "doctor", "名詞", "醫生"],
+  [489, "dodge ball", "名詞", "躲避球"],
+  [490, "dog", "名詞", "狗"],
+  [491, "doll", "名詞", "洋娃娃"],
+  [492, "dollar", "名詞", "元（貨幣單位）"],
+  [493, "dolphin", "名詞", "海豚"],
+  [494, "donkey", "名詞", "驢"],
+  [495, "door", "名詞", "門"],
+  [496, "dot", "名詞", "點"],
+  [497, "double", "形容詞", "雙倍的"],
+  [498, "Double Tenth Day", "名詞", "雙十節"],
+  [499, "doubt", "動詞", "懷疑"],
+  [500, "doughnut", "名詞", "甜甜圈"],
+  [501, "down", "介系詞", "沿…而下"],
+  [502, "download", "動詞", "下載"],
+  [503, "downstairs", "名詞", "樓下"],
+  [504, "downtown", "名詞", "市中心"],
+  [505, "dozen", "名詞", "一打（十二個）"],
+  [506, "dragon", "名詞", "龍"],
+  [507, "Dragon-boat Festival", "名詞", "端午節"],
+  [508, "drama", "名詞", "戲劇"],
+  [509, "draw", "動詞", "畫畫"],
+  [510, "drawer", "名詞", "抽屜"],
+  [511, "dream", "名詞", "夢想"],
+  [512, "dress", "名詞", "連身裙"],
+  [513, "dresser", "名詞", "梳妝台"],
+  [514, "drink", "動詞", "喝"],
+  [515, "drive", "動詞", "開車"],
+  [516, "driver", "名詞", "司機"],
+  [517, "drop", "動詞", "掉落"],
+  [518, "drugstore", "名詞", "藥局"],
+  [519, "drum", "名詞", "鼓"],
+  [520, "dry", "形容詞", "乾燥的"],
+  [521, "dryer", "名詞", "烘乾機"],
+  [522, "duck", "名詞", "鴨"],
+  [523, "dumb", "形容詞", "啞的"],
+  [524, "dumpling", "名詞", "餃子"],
+  [525, "during", "介系詞", "在…期間"],
+  [526, "duty", "名詞", "責任"],
+  [527, "each", "代名詞", "每個"],
+  [528, "eagle", "名詞", "老鷹"],
+  [529, "ear", "名詞", "耳朵"],
+  [530, "early", "形容詞", "早的"],
+  [531, "earn", "動詞", "賺取"],
+  [532, "earrings", "名詞", "耳環"],
+  [533, "earth", "名詞", "地球"],
+  [534, "earthquake", "名詞", "地震"],
+  [535, "ease", "動詞", "緩和"],
+  [536, "east", "形容詞", "東方的"],
+  [537, "Easter", "名詞", "復活節"],
+  [538, "easy", "形容詞", "容易的"],
+  [539, "eat", "動詞", "吃"],
+  [540, "edge", "名詞", "邊緣"],
+  [541, "education", "名詞", "教育"],
+  [542, "effort", "名詞", "努力"],
+  [543, "egg", "名詞", "蛋"],
+  [544, "eight", "名詞", "八"],
+  [545, "eighteen", "名詞", "十八"],
+  [546, "eighty", "名詞", "八十"],
+  [547, "either", "副詞/連接詞", "也（用於否定句）"],
+  [548, "elder", "名詞", "長輩"],
+  [549, "elect", "動詞", "選舉"],
+  [550, "electric", "形容詞", "電的"],
+  [551, "elementary school", "名詞", "小學"],
+  [552, "elephant", "名詞", "大象"],
+  [553, "eleven", "名詞", "十一"],
+  [554, "e-mail", "名詞", "電子郵件"],
+  [555, "embarrass", "動詞", "使尷尬"],
+  [556, "emotion", "名詞", "情緒"],
+  [557, "emphasize", "動詞", "強調"],
+  [558, "employ", "動詞", "雇用"],
+  [559, "end", "動詞", "結束"],
+  [560, "enemy", "名詞", "敵人"],
+  [561, "energetic", "形容詞", "精力充沛的"],
+  [562, "energy", "名詞", "能量"],
+  [563, "engine", "名詞", "引擎"],
+  [564, "engineer", "名詞", "工程師"],
+  [565, "English", "名詞", "英文"],
+  [566, "enjoy", "動詞", "享受"],
+  [567, "enough", "形容詞", "足夠的"],
+  [568, "enter", "動詞", "進入"],
+  [569, "entrance", "名詞", "入口"],
+  [570, "envelope", "名詞", "信封"],
+  [571, "environment", "名詞", "環境"],
+  [572, "envy", "動詞", "嫉妒"],
+  [573, "equal", "形容詞", "平等的"],
+  [574, "eraser", "名詞", "橡皮擦"],
+  [575, "error", "名詞", "錯誤"],
+  [576, "especially", "副詞", "尤其"],
+  [577, "eve", "名詞", "前夕"],
+  [578, "even", "副詞", "甚至"],
+  [579, "evening", "名詞", "傍晚"],
+  [580, "event", "名詞", "事件"],
+  [581, "ever", "副詞", "曾經"],
+  [582, "everyone", "代名詞", "每個人"],
+  [583, "everything", "代名詞", "每件事"],
+  [584, "everywhere", "副詞", "到處"],
+  [585, "evil", "形容詞", "邪惡的"],
+  [586, "exam", "名詞", "考試"],
+  [587, "example", "名詞", "例子"],
+  [588, "excellent", "形容詞", "優秀的"],
+  [589, "except", "介系詞", "除了…之外"],
+  [590, "excite", "動詞", "使興奮"],
+  [591, "excited", "形容詞", "感到興奮的"],
+  [592, "exciting", "形容詞", "令人興奮的"],
+  [593, "excuse", "名詞", "藉口"],
+  [594, "exercise", "動詞", "運動"],
+  [595, "exercise", "名詞", "練習"],
+  [596, "exist", "動詞", "存在"],
+  [597, "exit", "名詞", "出口"],
+  [598, "expect", "動詞", "預期"],
+  [599, "expensive", "形容詞", "昂貴的"],
+  [600, "experience", "名詞", "經驗"],
+  [601, "explain", "動詞", "解釋"],
+  [602, "express", "動詞", "表達"],
+  [603, "extra", "形容詞", "額外的"],
+  [604, "eye", "名詞", "眼睛"],
+  [605, "face", "名詞", "臉"],
+  [606, "fact", "名詞", "事實"],
+  [607, "factory", "名詞", "工廠"],
+  [608, "fair", "形容詞", "公平的"],
+  [609, "fall", "動詞", "掉落"],
+  [610, "family", "名詞", "家庭"],
+  [611, "famous", "形容詞", "著名的"],
+  [612, "fan", "名詞", "粉絲；愛好者"],
+  [613, "fan", "名詞", "電風扇"],
+  [614, "fantastic", "形容詞", "極好的"],
+  [615, "far", "形容詞", "遠的"],
+  [616, "farm", "名詞", "農場"],
+  [617, "farmer", "名詞", "農夫"],
+  [618, "fashionable", "形容詞", "時尚的"],
+  [619, "fast", "形容詞", "快的"],
+  [620, "fast food", "名詞", "速食"],
+  [621, "fast food restaurant", "名詞", "速食餐廳"],
+  [622, "fat", "形容詞", "胖的"],
+  [623, "father", "名詞", "父親"],
+  [624, "Father’s Day", "名詞", "父親節"],
+  [625, "faucet", "名詞", "水龍頭"],
+  [626, "fault", "名詞", "過錯"],
+  [627, "favorite", "形容詞", "最喜愛的"],
+  [628, "fear", "名詞", "恐懼"],
+  [629, "February", "名詞", "二月"],
+  [630, "fee", "名詞", "費用"],
+  [631, "feed", "動詞", "餵食"],
+  [632, "feel", "動詞", "感覺"],
+  [633, "feeling", "名詞", "感覺"],
+  [634, "fence", "名詞", "柵欄"],
+  [635, "festival", "名詞", "節慶"],
+  [636, "fever", "名詞", "發燒"],
+  [637, "few", "限定詞", "很少（用於可數）"],
+  [638, "fifteen", "名詞", "十五"],
+  [639, "fifty", "名詞", "五十"],
+  [640, "fight", "動詞", "打架"],
+  [641, "file", "名詞", "檔案"],
+  [642, "fill", "動詞", "填滿"],
+  [643, "film", "名詞", "電影"],
+  [644, "final", "形容詞", "最終的"],
+  [645, "finally", "副詞", "最後"],
+  [646, "find", "動詞", "找到"],
+  [647, "finger", "名詞", "手指"],
+  [648, "finish", "動詞", "完成"],
+  [649, "fire", "名詞", "火"],
+  [650, "fire station", "名詞", "消防局"],
+  [651, "first", "名詞", "第一"],
+  [652, "fish", "名詞", "魚"],
+  [653, "fish", "動詞", "釣魚"],
+  [654, "fisherman", "名詞", "漁夫"],
+  [655, "fit", "動詞", "適合"],
+  [656, "five", "名詞", "五"],
+  [657, "fix", "動詞", "修理"],
+  [658, "flag", "名詞", "旗幟"],
+  [659, "flashlight", "名詞", "手電筒"],
+  [660, "flat tire", "名詞", "爆胎"],
+  [661, "flight", "名詞", "飛行；航班"],
+  [662, "floor", "名詞", "地板；樓層"],
+  [663, "flour", "名詞", "麵粉"],
+  [664, "flower", "名詞", "花"],
+  [665, "flower shop", "名詞", "花店"],
+  [666, "flu", "名詞", "流行性感冒"],
+  [667, "flute", "名詞", "長笛"],
+  [668, "fly", "動詞", "飛行"],
+  [669, "focus", "動詞", "聚焦"],
+  [670, "fog", "名詞", "霧"],
+  [671, "foggy", "形容詞", "有霧的"],
+  [672, "follow", "動詞", "跟隨"],
+  [673, "food", "名詞", "食物"],
+  [674, "fool", "名詞", "傻瓜"],
+  [675, "foolish", "形容詞", "愚蠢的"],
+  [676, "foot", "名詞", "腳"],
+  [677, "foot", "名詞", "英尺"],
+  [678, "football", "名詞", "美式足球"],
+  [679, "for", "介系詞", "為了；給；因為"],
+  [680, "foreign", "形容詞", "外國的"],
+  [681, "foreigner", "名詞", "外國人"],
+  [682, "forest", "名詞", "森林"],
+  [683, "forget", "動詞", "忘記"],
+  [684, "forgive", "動詞", "原諒"],
+  [685, "fork", "名詞", "叉子"],
+  [686, "form", "動詞", "形成"],
+  [687, "formal", "形容詞", "正式的"],
+  [688, "former", "形容詞", "前任的；以前的"],
+  [689, "forty", "名詞", "四十"],
+  [690, "forward", "副詞", "向前"],
+  [691, "four", "名詞", "四"],
+  [692, "fourteen", "名詞", "十四"],
+  [693, "fox", "名詞", "狐狸"],
+  [694, "frank", "形容詞", "坦率的"],
+  [695, "free", "形容詞", "免費的；自由的"],
+  [696, "freedom", "名詞", "自由"],
+  [697, "freezer", "名詞", "冷凍庫"],
+  [698, "freezing", "形容詞", "極冷的"],
+  [699, "fresh", "形容詞", "新鮮的"],
+  [700, "Friday", "名詞", "星期五"],
+  [701, "friend", "名詞", "朋友"],
+  [702, "friendly", "形容詞", "友善的"],
+  [703, "friendship", "名詞", "友誼"],
+  [704, "fries", "名詞", "薯條"],
+  [705, "frighten", "動詞", "使害怕"],
+  [706, "frisbee", "名詞", "飛盤"],
+  [707, "frog", "名詞", "青蛙"],
+  [708, "from", "介系詞", "從…；來自…"],
+  [709, "front", "形容詞", "前面的"],
+  [710, "fruit", "名詞", "水果"],
+  [711, "fry", "動詞", "油炸"],
+  [712, "full", "形容詞", "飽的"],
+  [713, "fun", "名詞", "樂趣"],
+  [714, "funny", "形容詞", "有趣的"],
+  [715, "furniture", "名詞", "家具"],
+  [716, "future", "名詞", "未來"],
+  [717, "game", "名詞", "遊戲"],
+  [718, "garage", "名詞", "車庫"],
+  [719, "garbage", "名詞", "垃圾"],
+  [720, "garden", "名詞", "花園"],
+  [721, "gas", "名詞", "瓦斯；汽油"],
+  [722, "gate", "名詞", "大門"],
+  [723, "gather", "動詞", "聚集"],
+  [724, "generous", "形容詞", "慷慨的"],
+  [725, "genius", "名詞", "天才"],
+  [726, "gentle", "形容詞", "溫和的"],
+  [727, "gentleman", "名詞", "紳士"],
+  [728, "geography", "名詞", "地理"],
+  [729, "gesture", "名詞", "手勢"],
+  [730, "get", "動詞", "得到"],
+  [731, "ghost", "名詞", "鬼魂"],
+  [732, "giant", "名詞", "巨人"],
+  [733, "gift", "名詞", "禮物"],
+  [734, "girl", "名詞", "女孩"],
+  [735, "give", "動詞", "給予"],
+  [736, "glad", "形容詞", "高興的"],
+  [737, "glass", "名詞", "玻璃杯"],
+  [738, "glasses", "名詞", "眼鏡"],
+  [739, "glove", "名詞", "手套"],
+  [740, "glue", "名詞", "膠水"],
+  [741, "go", "動詞", "去"],
+  [742, "goal", "名詞", "目標"],
+  [743, "goat", "名詞", "山羊"],
+  [744, "gold", "名詞", "黃金"],
+  [745, "golf", "名詞", "高爾夫球"],
+  [746, "goose", "名詞", "鵝"],
+  [747, "government", "名詞", "政府"],
+  [748, "grade", "名詞", "年級；成績"],
+  [749, "gram", "名詞", "公克"],
+  [750, "granddaughter", "名詞", "孫女"],
+  [751, "grandfather", "名詞", "祖父"],
+  [752, "grandmother", "名詞", "祖母"],
+  [753, "grandson", "名詞", "孫子"],
+  [754, "grape", "名詞", "葡萄"],
+  [755, "grass", "名詞", "草"],
+  [756, "gray", "名詞", "灰色"],
+  [757, "greedy", "形容詞", "貪心的"],
+  [758, "green", "名詞", "綠色"],
+  [759, "greet", "動詞", "問候"],
+  [760, "ground", "名詞", "地面"],
+  [761, "group", "名詞", "群組"],
+  [762, "grow", "動詞", "成長；生長"],
+  [763, "grow", "動詞", "成長"],
+  [764, "guard", "名詞", "警衛"],
+  [765, "guava", "名詞", "番石榴"],
+  [766, "guess", "動詞", "猜測"],
+  [767, "guest", "名詞", "客人"],
+  [768, "guide", "名詞", "導遊"],
+  [769, "guide", "動詞", "引導"],
+  [770, "guitar", "名詞", "吉他"],
+  [771, "gun", "名詞", "槍"],
+  [772, "gym", "名詞", "體育館"],
+  [773, "habit", "名詞", "習慣"],
+  [774, "hair", "名詞", "頭髮"],
+  [775, "hair dresser", "名詞", "髮型師"],
+  [776, "haircut", "名詞", "理髮"],
+  [777, "half", "名詞", "一半"],
+  [778, "hall", "名詞", "走廊；大廳"],
+  [779, "Halloween", "名詞", "萬聖節"],
+  [780, "ham", "名詞", "火腿"],
+  [781, "hamburger", "名詞", "漢堡"],
+  [782, "hammer", "名詞", "鐵鎚"],
+  [783, "hand", "名詞", "手"],
+  [784, "handkerchief", "名詞", "手帕"],
+  [785, "handle", "動詞", "處理"],
+  [786, "handsome", "形容詞", "英俊的"],
+  [787, "hang", "動詞", "懸掛"],
+  [788, "hanger", "名詞", "衣架"],
+  [789, "happen", "動詞", "發生"],
+  [790, "happy", "形容詞", "快樂的"],
+  [791, "hard", "形容詞", "硬的；困難的"],
+  [792, "hardly", "副詞", "幾乎不"],
+  [793, "hard-working", "形容詞", "努力工作的"],
+  [794, "hate", "動詞", "討厭"],
+  [795, "he", "代名詞(主格)", "他"],
+  [796, "head", "名詞", "頭"],
+  [797, "headache", "名詞", "頭痛"],
+  [798, "health", "名詞", "健康"],
+  [799, "healthy", "形容詞", "健康的"],
+  [800, "hear", "動詞", "聽見"],
+  [801, "heart", "名詞", "心臟"],
+  [802, "heat", "名詞", "熱"],
+  [803, "heater", "名詞", "暖氣"],
+  [804, "heavy", "形容詞", "重的"],
+  [805, "height", "名詞", "高度"],
+  [806, "helicopter", "名詞", "直升機"],
+  [807, "help", "動詞", "幫助"],
+  [808, "helpful", "形容詞", "有幫助的"],
+  [809, "hen", "名詞", "母雞"],
+  [810, "her", "所有格", "她的"],
+  [811, "her", "代名詞(受格)", "她的"],
+  [812, "hero", "名詞", "英雄"],
+  [813, "hers", "代名詞", "她的"],
+  [814, "herself", "代名詞", "她自己"],
+  [815, "hide", "動詞", "隱藏"],
+  [816, "high", "形容詞", "高的"],
+  [817, "highway", "名詞", "高速公路"],
+  [818, "hike", "動詞", "健行／遠足"],
+  [819, "hill", "名詞", "山丘"],
+  [820, "him", "代名詞(受格)", "他"],
+  [821, "himself", "代名詞", "他自己"],
+  [822, "hip", "名詞", "臀部"],
+  [823, "hippo", "名詞", "河馬"],
+  [824, "hire", "動詞", "雇用"],
+  [825, "his", "所有格", "他的"],
+  [826, "his", "代名詞", "他的"],
+  [827, "history", "名詞", "歷史"],
+  [828, "hit", "動詞", "擊打"],
+  [829, "hobby", "名詞", "嗜好"],
+  [830, "hold", "動詞", "握住"],
+  [831, "hole", "名詞", "破洞"],
+  [832, "holiday", "名詞", "假日"],
+  [833, "home", "名詞", "家"],
+  [834, "homesick", "形容詞", "想家的"],
+  [835, "homework", "名詞", "家庭作業"],
+  [836, "honest", "形容詞", "誠實的"],
+  [837, "honesty", "名詞", "誠實"],
+  [838, "honey", "名詞", "蜂蜜；親愛的"],
+  [839, "hop", "動詞", "單腳跳"],
+  [840, "hope", "動詞", "希望"],
+  [841, "horrible", "形容詞", "可怕的"],
+  [842, "horse", "名詞", "馬"],
+  [843, "hospital", "名詞", "醫院"],
+  [844, "host", "名詞", "主人"],
+  [845, "hot", "形容詞", "辣的；熱的"],
+  [846, "hot", "形容詞", "炎熱的"],
+  [847, "hot dog", "名詞", "熱狗"],
+  [848, "hotel", "名詞", "飯店"],
+  [849, "hour", "名詞", "小時"],
+  [850, "house", "名詞", "房子"],
+  [851, "housewife", "名詞", "家庭主婦"],
+  [852, "housework", "名詞", "家事"],
+  [853, "how", "疑問詞", "如何"],
+  [854, "however", "副詞", "然而"],
+  [855, "hug", "動詞", "擁抱"],
+  [856, "human", "名詞", "人類"],
+  [857, "humble", "形容詞", "謙虛的"],
+  [858, "humid", "形容詞", "潮濕的"],
+  [859, "humor", "名詞", "幽默"],
+  [860, "humorous", "形容詞", "幽默的"],
+  [861, "hundred", "名詞", "百"],
+  [862, "hunger", "名詞", "飢餓"],
+  [863, "hungry", "形容詞", "餓的"],
+  [864, "hunt", "動詞", "狩獵"],
+  [865, "hunter", "名詞", "獵人"],
+  [866, "hurry", "動詞", "匆忙"],
+  [867, "hurt", "動詞", "傷害"],
+  [868, "husband", "名詞", "丈夫"],
+  [869, "I", "代名詞(主格)", "我"],
+  [870, "ice", "名詞", "冰"],
+  [871, "ice cream", "名詞", "冰淇淋"],
+  [872, "idea", "名詞", "主意"],
+  [873, "if", "連接詞", "如果"],
+  [874, "ignore", "動詞", "忽略"],
+  [875, "imagine", "動詞", "想像"],
+  [876, "impolite", "形容詞", "不禮貌的"],
+  [877, "importance", "名詞", "重要性"],
+  [878, "important", "形容詞", "重要的"],
+  [879, "impossible", "形容詞", "不可能的"],
+  [880, "improve", "動詞", "改善"],
+  [881, "in", "介系詞", "在…裡面（較大範圍）"],
+  [882, "in back of", "介系詞", "在…後面"],
+  [883, "in front of", "介系詞", "在…前面"],
+  [884, "inch", "名詞", "英吋"],
+  [885, "include", "動詞", "包含"],
+  [886, "income", "名詞", "收入"],
+  [887, "increase", "動詞", "增加"],
+  [888, "independent", "形容詞", "獨立的"],
+  [889, "influence", "名詞", "影響"],
+  [890, "information", "名詞", "資訊"],
+  [891, "ink", "名詞", "墨水"],
+  [892, "insect", "名詞", "昆蟲"],
+  [893, "inside", "介系詞", "在…裡面"],
+  [894, "insist", "動詞", "堅持"],
+  [895, "inspire", "動詞", "激勵"],
+  [896, "instant", "形容詞", "立即的"],
+  [897, "instant noodle", "名詞", "泡麵"],
+  [898, "instrument", "名詞", "樂器"],
+  [899, "intelligent", "形容詞", "有智慧的"],
+  [900, "interest", "名詞", "興趣"],
+  [901, "interested", "形容詞", "感興趣的"],
+  [902, "interesting", "形容詞", "有趣的"],
+  [903, "international", "形容詞", "國際的"],
+  [904, "Internet", "名詞", "網際網路"],
+  [905, "interrupt", "動詞", "打斷"],
+  [906, "interview", "名詞", "面試；訪談"],
+  [907, "into", "介系詞", "進入"],
+  [908, "introduce", "動詞", "介紹"],
+  [909, "invent", "動詞", "發明"],
+  [910, "invitation", "名詞", "邀請"],
+  [911, "invite", "動詞", "邀請"],
+  [912, "iron", "動詞", "熨燙"],
+  [913, "island", "名詞", "島嶼"],
+  [914, "it", "代名詞(主/受格)", "它"],
+  [915, "item", "名詞", "項目"],
+  [916, "its", "所有格", "它的"],
+  [917, "itself", "代名詞", "它自己"],
+  [918, "jacket", "名詞", "夾克"],
+  [919, "jam", "名詞", "果醬"],
+  [920, "January", "名詞", "一月"],
+  [921, "Japanese", "名詞", "日本人"],
+  [922, "jealous", "形容詞", "嫉妒的"],
+  [923, "jeans", "名詞", "牛仔褲"],
+  [924, "jeep", "名詞", "吉普車"],
+  [925, "jog", "動詞", "慢跑"],
+  [926, "join", "動詞", "加入"],
+  [927, "joke", "名詞", "笑話"],
+  [928, "journalist", "名詞", "記者"],
+  [929, "joy", "名詞", "歡樂"],
+  [930, "judge", "名詞", "法官"],
+  [931, "judge", "動詞", "判斷"],
+  [932, "juice", "名詞", "果汁"],
+  [933, "July", "名詞", "七月"],
+  [934, "jump", "動詞", "跳躍"],
+  [935, "June", "名詞", "六月"],
+  [936, "junior high school", "名詞", "初中"],
+  [937, "kangaroo", "名詞", "袋鼠"],
+  [938, "keep", "動詞", "保持"],
+  [939, "ketchup", "名詞", "番茄醬"],
+  [940, "key", "名詞", "鑰匙"],
+  [941, "kick", "動詞", "踢"],
+  [942, "kid", "名詞", "小孩"],
+  [943, "kill", "動詞", "殺死"],
+  [944, "kilogram", "名詞", "公斤"],
+  [945, "kilometer", "名詞", "公里"],
+  [946, "kind", "形容詞", "仁慈的；親切的"],
+  [947, "kind", "名詞", "種類"],
+  [948, "kindergarten", "名詞", "幼兒園"],
+  [949, "king", "名詞", "國王"],
+  [950, "kingdom", "名詞", "王國"],
+  [951, "kiss", "動詞", "親吻"],
+  [952, "kitchen", "名詞", "廚房"],
+  [953, "kitten", "名詞", "小貓"],
+  [954, "knee", "名詞", "膝蓋"],
+  [955, "knife", "名詞", "刀子"],
+  [956, "knock", "動詞", "敲"],
+  [957, "know", "動詞", "知道"],
+  [958, "knowledge", "名詞", "知識"],
+  [959, "koala", "名詞", "無尾熊"],
+  [960, "Korean", "名詞", "韓國人"],
+  [961, "lack", "名詞", "缺乏"],
+  [962, "lady", "名詞", "女士"],
+  [963, "lake", "名詞", "湖泊"],
+  [964, "lamb", "名詞", "小羊"],
+  [965, "lamp", "名詞", "燈"],
+  [966, "land", "動詞", "降落"],
+  [967, "language", "名詞", "語言"],
+  [968, "lantern", "名詞", "燈籠"],
+  [969, "Lantern Festival", "名詞", "元宵節"],
+  [970, "large", "形容詞", "大的"],
+  [971, "last", "形容詞", "最後的"],
+  [972, "last", "形容詞", "上一個的；最後的"],
+  [973, "late", "形容詞", "晚的"],
+  [974, "later", "副詞", "稍後"],
+  [975, "latest", "形容詞", "最新的"],
+  [976, "laugh", "動詞", "大笑"],
+  [977, "law", "名詞", "法律"],
+  [978, "lawyer", "名詞", "律師"],
+  [979, "lay", "動詞", "放置（產卵）"],
+  [980, "lazy", "形容詞", "懶惰的"],
+  [981, "lead", "動詞", "領導"],
+  [982, "leader", "名詞", "領袖"],
+  [983, "leaf", "名詞", "葉子"],
+  [984, "learn", "動詞", "學習"],
+  [985, "least", "副詞", "最少"],
+  [986, "leave", "動詞", "離開"],
+  [987, "left", "形容詞", "左邊的"],
+  [988, "leg", "名詞", "腿"],
+  [989, "lemon", "名詞", "檸檬"],
+  [990, "lend", "動詞", "借出"],
+  [991, "less", "限定詞", "更少（用於不可數）"],
+  [992, "lesson", "名詞", "課"],
+  [993, "let", "動詞", "讓"],
+  [994, "letter", "名詞", "信件；字母"],
+  [995, "lettuce", "名詞", "生菜"],
+  [996, "level", "名詞", "水平"],
+  [997, "library", "名詞", "圖書館"],
+  [998, "lick", "動詞", "舔"],
+  [999, "lid", "名詞", "蓋子"],
+  [1000, "lie", "動詞", "說謊；躺"],
+  [1001, "life", "名詞", "生命"],
+  [1002, "lift", "動詞", "舉起"],
+  [1003, "light", "名詞", "燈；光"],
+  [1004, "light", "形容詞", "輕的"],
+  [1005, "lightning", "名詞", "閃電"],
+  [1006, "like", "介系詞", "像…"],
+  [1007, "like", "動詞", "喜歡"],
+  [1008, "limit", "動詞", "限制"],
+  [1009, "line", "名詞", "線"],
+  [1010, "link", "名詞", "連結"],
+  [1011, "lion", "名詞", "獅子"],
+  [1012, "lip", "名詞", "嘴唇"],
+  [1013, "liquid", "名詞", "液體"],
+  [1014, "list", "動詞", "列出"],
+  [1015, "listen", "動詞", "聆聽"],
+  [1016, "liter", "名詞", "公升"],
+  [1017, "little", "限定詞", "很少（用於不可數）"],
+  [1018, "little", "形容詞", "小的"],
+  [1019, "live", "動詞", "居住；生活"],
+  [1020, "living room", "名詞", "客廳"],
+  [1021, "loaf", "名詞", "條（麵包）"],
+  [1022, "local", "形容詞", "當地的"],
+  [1023, "lock", "動詞", "鎖上"],
+  [1024, "locker", "名詞", "鎖櫃"],
+  [1025, "lonely", "形容詞", "孤獨的"],
+  [1026, "long", "形容詞", "長的"],
+  [1027, "look", "動詞", "看"],
+  [1028, "lose", "動詞", "輸掉；失去"],
+  [1029, "loser", "名詞", "輸家"],
+  [1030, "loud", "形容詞", "大聲的"],
+  [1031, "love", "動詞", "愛"],
+  [1032, "lovely", "形容詞", "可愛的"],
+  [1033, "low", "形容詞", "低的"],
+  [1034, "lucky", "形容詞", "幸運的"],
+  [1035, "lunch", "名詞", "午餐"],
+  [1036, "machine", "名詞", "機器"],
+  [1037, "mad", "形容詞", "瘋狂的"],
+  [1038, "magazine", "名詞", "雜誌"],
+  [1039, "magic", "形容詞", "魔法的"],
+  [1040, "magician", "名詞", "魔術師"],
+  [1041, "mail", "名詞", "郵件"],
+  [1042, "mailman", "名詞", "郵差"],
+  [1043, "major", "形容詞", "主要的"],
+  [1044, "make", "動詞", "製作"],
+  [1045, "mall", "名詞", "購物中心"],
+  [1046, "man", "名詞", "男人"],
+  [1047, "manager", "名詞", "經理"],
+  [1048, "mango", "名詞", "芒果"],
+  [1049, "manner", "名詞", "禮貌；方式"],
+  [1050, "many", "代名詞", "許多（可數）"],
+  [1051, "map", "名詞", "地圖"],
+  [1052, "March", "名詞", "三月"],
+  [1053, "mark", "動詞", "批改"],
+  [1054, "marker", "名詞", "麥克筆"],
+  [1055, "market", "名詞", "市場"],
+  [1056, "married", "形容詞", "已婚的"],
+  [1057, "marry", "動詞", "結婚"],
+  [1058, "marvelous", "形容詞", "不可思議的；極好的"],
+  [1059, "mask", "名詞", "口罩；面具"],
+  [1060, "mass", "名詞", "團；大量"],
+  [1061, "master", "名詞", "主人；大師"],
+  [1062, "mat", "名詞", "地墊"],
+  [1063, "match", "動詞", "匹配"],
+  [1064, "math", "名詞", "數學"],
+  [1065, "matter", "名詞", "事情"],
+  [1066, "maximum", "形容詞", "最大的"],
+  [1067, "May", "名詞", "五月"],
+  [1068, "me", "代名詞(受格)", "我"],
+  [1069, "meal", "名詞", "一餐"],
+  [1070, "mean", "動詞", "意思是"],
+  [1071, "measure", "動詞", "測量"],
+  [1072, "meat", "名詞", "肉"],
+  [1073, "mechanic", "名詞", "技工"],
+  [1074, "medicine", "名詞", "藥物；醫學"],
+  [1075, "medium", "形容詞", "中等的"],
+  [1076, "meet", "動詞", "遇見"],
+  [1077, "meeting", "名詞", "會議"],
+  [1078, "member", "名詞", "成員"],
+  [1079, "memory", "名詞", "記憶；回憶"],
+  [1080, "memory", "名詞", "記憶"],
+  [1081, "men’s room", "名詞", "男廁"],
+  [1082, "menu", "名詞", "菜單"],
+  [1083, "message", "名詞", "訊息"],
+  [1084, "metal", "名詞", "金屬"],
+  [1085, "meter", "名詞", "公尺"],
+  [1086, "method", "名詞", "方法"],
+  [1087, "metro", "名詞", "地鐵"],
+  [1088, "middle", "形容詞", "中間的"],
+  [1089, "midnight", "名詞", "午夜"],
+  [1090, "mile", "名詞", "英里"],
+  [1091, "milk", "名詞", "牛奶"],
+  [1092, "milk shake", "名詞", "奶昔"],
+  [1093, "million", "名詞", "百萬"],
+  [1094, "mind", "名詞", "心智"],
+  [1095, "mind", "動詞", "介意"],
+  [1096, "mine", "代名詞", "我的"],
+  [1097, "minor", "形容詞", "次要的；較小的"],
+  [1098, "minus", "名詞", "負號"],
+  [1099, "minute", "名詞", "分鐘"],
+  [1100, "mirror", "名詞", "鏡子"],
+  [1101, "miss", "動詞", "想念；未擊中"],
+  [1102, "mistake", "名詞", "錯誤"],
+  [1103, "mix", "動詞", "混合"],
+  [1104, "model", "名詞", "模特兒"],
+  [1105, "modern", "形容詞", "現代的"],
+  [1106, "moment", "名詞", "片刻"],
+  [1107, "Monday", "名詞", "星期一"],
+  [1108, "money", "名詞", "錢"],
+  [1109, "monkey", "名詞", "猴子"],
+  [1110, "monster", "名詞", "怪物"],
+  [1111, "month", "名詞", "月"],
+  [1112, "moon", "名詞", "月亮"],
+  [1113, "moon cake", "名詞", "月餅"],
+  [1114, "Moon Festival", "名詞", "中秋節"],
+  [1115, "mop", "動詞", "用拖把拖地"],
+  [1116, "morning", "名詞", "早晨"],
+  [1117, "mosquito", "名詞", "蚊子"],
+  [1118, "mother", "名詞", "母親"],
+  [1119, "Mother’s Day", "名詞", "母親節"],
+  [1120, "motion", "名詞", "動作"],
+  [1121, "motorcycle", "名詞", "摩托車"],
+  [1122, "mountain", "名詞", "山"],
+  [1123, "mouse", "名詞", "老鼠"],
+  [1124, "mouth", "名詞", "嘴巴"],
+  [1125, "move", "動詞", "移動"],
+  [1126, "movement", "名詞", "運動"],
+  [1127, "movie", "名詞", "電影"],
+  [1128, "movie theater", "名詞", "電影院"],
+  [1129, "mud", "名詞", "泥巴"],
+  [1130, "museum", "名詞", "博物館"],
+  [1131, "MRT", "名詞", "捷運"],
+  [1132, "music", "名詞", "音樂"],
+  [1133, "musician", "名詞", "音樂家"],
+  [1134, "most", "代名詞", "大部分"],
+  [1135, "my", "所有格", "我的"],
+  [1136, "myself", "代名詞", "我自己"],
+  [1137, "nail", "名詞", "指甲"],
+  [1138, "napkin", "名詞", "餐巾"],
+  [1139, "narrow", "形容詞", "窄的"],
+  [1140, "national", "形容詞", "國家的"],
+  [1141, "natural", "形容詞", "自然的"],
+  [1142, "nature", "名詞", "大自然"],
+  [1143, "naughty", "形容詞", "頑皮的"],
+  [1144, "near", "介系詞", "靠近"],
+  [1145, "necessary", "形容詞", "必要的"],
+  [1146, "neck", "名詞", "脖子"],
+  [1147, "necklace", "名詞", "項鍊"],
+  [1148, "need", "動詞", "需要"],
+  [1149, "needle", "名詞", "針"],
+  [1150, "negative", "形容詞", "負面的"],
+  [1151, "neighbor", "名詞", "鄰居"],
+  [1152, "nephew", "名詞", "侄子；外甥"],
+  [1153, "nervous", "形容詞", "緊張的"],
+  [1154, "nest", "名詞", "鳥巢"],
+  [1155, "net", "名詞", "網"],
+  [1156, "never", "副詞", "從不"],
+  [1157, "New Year’s Day", "名詞", "元旦"],
+  [1158, "New Year’s Eve", "名詞", "除夕"],
+  [1159, "news", "名詞", "新聞"],
+  [1160, "newspaper", "名詞", "報紙"],
+  [1161, "next", "形容詞", "下一個的"],
+  [1162, "next to", "介系詞", "緊鄰；在…旁邊"],
+  [1163, "nice-looking", "形容詞", "好看的"],
+  [1164, "niece", "名詞", "姪女；外甥女"],
+  [1165, "night", "名詞", "夜晚"],
+  [1166, "nine", "名詞", "九"],
+  [1167, "nineteen", "名詞", "十九"],
+  [1168, "ninety", "名詞", "九十"],
+  [1169, "nobody", "代名詞", "沒有人"],
+  [1170, "nod", "動詞", "點頭"],
+  [1171, "noise", "名詞", "噪音"],
+  [1172, "noisy", "形容詞", "吵鬧的"],
+  [1173, "noodle", "名詞", "麵條"],
+  [1174, "noon", "名詞", "中午"],
+  [1175, "nor", "連接詞", "也不"],
+  [1176, "north", "形容詞", "北方的"],
+  [1177, "nose", "名詞", "鼻子"],
+  [1178, "note", "名詞", "筆記；音符"],
+  [1179, "notebook", "名詞", "筆記本"],
+  [1180, "nothing", "代名詞", "沒有東西"],
+  [1181, "notice", "動詞", "注意到"],
+  [1182, "novel", "名詞", "小說"],
+  [1183, "November", "名詞", "十一月"],
+  [1184, "now", "副詞", "現在"],
+  [1185, "number", "名詞", "數字；數量"],
+  [1186, "nurse", "名詞", "護士"],
+  [1187, "nut", "名詞", "堅果"],
+  [1188, "o’clock", "副詞", "…點鐘"],
+  [1189, "obey", "動詞", "服從"],
+  [1190, "ocean", "名詞", "海洋"],
+  [1191, "October", "名詞", "十月"],
+  [1192, "of", "介系詞", "…的；關於"],
+  [1193, "off", "介系詞", "離開；從…下來"],
+  [1194, "offer", "動詞", "提供"],
+  [1195, "office", "名詞", "辦公室"],
+  [1196, "often", "副詞", "經常"],
+  [1197, "oil", "名詞", "油"],
+  [1198, "old", "形容詞", "年老的"],
+  [1199, "omit", "動詞", "省略"],
+  [1200, "on", "介系詞", "在…上面（接觸）"],
+  [1201, "once", "副詞", "曾經；一次"],
+  [1202, "one", "名詞", "一"],
+  [1203, "onion", "名詞", "洋蔥"],
+  [1204, "open", "動詞", "打開"],
+  [1205, "operation", "名詞", "操作；手術"],
+  [1206, "opinion", "名詞", "意見"],
+  [1207, "or", "連接詞", "或者"],
+  [1208, "orange", "名詞", "柳橙"],
+  [1209, "orange", "名詞", "橙色"],
+  [1210, "order", "動詞", "點餐"],
+  [1211, "order", "名詞", "命令；訂單"],
+  [1212, "ordinary", "形容詞", "普通的"],
+  [1213, "our", "所有格", "我們的"],
+  [1214, "ours", "代名詞", "我們的"],
+  [1215, "ourselves", "代名詞", "我們自己"],
+  [1216, "out of", "介系詞", "從…裡面出來"],
+  [1217, "outside", "介系詞", "在…外面"],
+  [1218, "oven", "名詞", "烤箱"],
+  [1219, "over", "介系詞", "在…正上方；越過"],
+  [1220, "overpass", "名詞", "天橋；陸橋"],
+  [1221, "overseas", "形容詞", "海外的"],
+  [1222, "over-weight", "形容詞", "過重的"],
+  [1223, "own", "動詞", "擁有"],
+  [1224, "ox", "名詞", "公牛"],
+  [1225, "pack", "名詞", "包"],
+  [1226, "pack", "動詞", "打包"],
+  [1227, "package", "名詞", "包裹"],
+  [1228, "page", "名詞", "頁"],
+  [1229, "pain", "名詞", "疼痛"],
+  [1230, "painful", "形容詞", "疼痛的"],
+  [1231, "paint", "動詞", "繪畫"],
+  [1232, "painter", "名詞", "畫家"],
+  [1233, "pair", "名詞", "一雙；一對"],
+  [1234, "pajamas", "名詞", "睡衣"],
+  [1235, "pale", "形容詞", "蒼白的"],
+  [1236, "pan", "名詞", "平底鍋"],
+  [1237, "panda", "名詞", "熊貓"],
+  [1238, "pants", "名詞", "褲子"],
+  [1239, "papaya", "名詞", "木瓜"],
+  [1240, "paper", "名詞", "紙"],
+  [1241, "parent", "名詞", "父母"],
+  [1242, "park", "名詞", "公園"],
+  [1243, "park", "動詞", "停車"],
+  [1244, "parking lot", "名詞", "停車場"],
+  [1245, "parrot", "名詞", "鸚鵡"],
+  [1246, "part", "名詞", "部分"],
+  [1247, "partner", "名詞", "夥伴；伴侶"],
+  [1248, "party", "名詞", "派對；政黨"],
+  [1249, "pass", "動詞", "通過"],
+  [1250, "passenger", "名詞", "乘客"],
+  [1251, "past", "介系詞", "過（用於時間）"],
+  [1252, "paste", "動詞", "貼上"],
+  [1253, "path", "名詞", "小徑"],
+  [1254, "patient", "形容詞", "有耐心的"],
+  [1255, "pattern", "名詞", "模式"],
+  [1256, "pause", "動詞", "暫停"],
+  [1257, "pay", "動詞", "支付"],
+  [1258, "peace", "名詞", "和平"],
+  [1259, "peaceful", "形容詞", "和平的"],
+  [1260, "peach", "名詞", "桃子"],
+  [1261, "pear", "名詞", "梨子"],
+  [1262, "pen", "名詞", "筆"],
+  [1263, "pencil", "名詞", "鉛筆"],
+  [1264, "pencil box", "名詞", "鉛筆盒"],
+  [1265, "people", "名詞", "人們"],
+  [1266, "pepper", "名詞", "胡椒"],
+  [1267, "perfect", "形容詞", "完美的"],
+  [1268, "period", "名詞", "時期"],
+  [1269, "person", "名詞", "人"],
+  [1270, "personal", "形容詞", "個人的"],
+  [1271, "pet", "名詞", "寵物"],
+  [1272, "photo", "名詞", "照片"],
+  [1273, "physics", "名詞", "物理"],
+  [1274, "piano", "名詞", "鋼琴"],
+  [1275, "pick", "動詞", "撿起；選擇"],
+  [1276, "picnic", "名詞", "野餐"],
+  [1277, "picture", "名詞", "圖片"],
+  [1278, "pie", "名詞", "派"],
+  [1279, "piece", "名詞", "片；塊；件"],
+  [1280, "pig", "名詞", "豬"],
+  [1281, "pigeon", "名詞", "鴿子"],
+  [1282, "pile", "名詞", "堆"],
+  [1283, "pillow", "名詞", "枕頭"],
+  [1284, "pin", "名詞", "大頭針"],
+  [1285, "pineapple", "名詞", "鳳梨"],
+  [1286, "pink", "名詞", "粉色"],
+  [1287, "pipe", "名詞", "管子"],
+  [1288, "pizza", "名詞", "披薩"],
+  [1289, "place", "名詞", "地方"],
+  [1290, "plain", "名詞", "平原"],
+  [1291, "plan", "動詞", "計劃"],
+  [1292, "planet", "名詞", "行星"],
+  [1293, "plant", "動詞", "種植"],
+  [1294, "plate", "名詞", "平盤"],
+  [1295, "platform", "名詞", "月台"],
+  [1296, "player", "名詞", "玩家；球員"],
+  [1297, "playground", "名詞", "操場；遊樂場"],
+  [1298, "plus", "名詞", "加號"],
+  [1299, "pocket", "名詞", "口袋"],
+  [1300, "poem", "名詞", "詩"],
+  [1301, "point", "名詞", "點；尖端"],
+  [1302, "poison", "名詞", "毒藥"],
+  [1303, "police officer", "名詞", "警察"],
+  [1304, "police station", "名詞", "警察局"],
+  [1305, "polite", "形容詞", "有禮貌的"],
+  [1306, "pollute", "動詞", "污染"],
+  [1307, "pollution", "名詞", "污染"],
+  [1308, "pond", "名詞", "池塘"],
+  [1309, "pool", "名詞", "游泳池"],
+  [1310, "pool", "名詞", "水池"],
+  [1311, "poor", "形容詞", "貧窮的；可憐的"],
+  [1312, "pop music", "名詞", "流行音樂"],
+  [1313, "popcorn", "名詞", "爆米花"],
+  [1314, "popular", "形容詞", "受歡迎的"],
+  [1315, "population", "名詞", "人口"],
+  [1316, "pork", "名詞", "豬肉"],
+  [1317, "position", "名詞", "位置"],
+  [1318, "positive", "形容詞", "正面的；陽性的"],
+  [1319, "possible", "形容詞", "可能的"],
+  [1320, "post office", "名詞", "郵局"],
+  [1321, "postcard", "名詞", "明信片"],
+  [1322, "potato", "名詞", "馬鈴薯"],
+  [1323, "pound", "名詞", "磅"],
+  [1324, "powder", "名詞", "粉末"],
+  [1325, "power", "名詞", "力量；電力"],
+  [1326, "practice", "動詞", "練習"],
+  [1327, "praise", "動詞", "讚美"],
+  [1328, "pray", "動詞", "祈禱"],
+  [1329, "precious", "形容詞", "珍貴的"],
+  [1330, "prepare", "動詞", "準備"],
+  [1331, "present", "名詞", "禮物"],
+  [1332, "present", "形容詞", "現在的；出席的"],
+  [1333, "president", "名詞", "總統"],
+  [1334, "pressure", "名詞", "壓力"],
+  [1335, "price", "名詞", "價格"],
+  [1336, "priest", "名詞", "神父"],
+  [1337, "prince", "名詞", "王子"],
+  [1338, "princess", "名詞", "公主"],
+  [1339, "principal", "名詞", "校長"],
+  [1340, "principle", "名詞", "原則"],
+  [1341, "print", "動詞", "列印"],
+  [1342, "printer", "名詞", "印表機"],
+  [1343, "private", "形容詞", "私人的"],
+  [1344, "prize", "名詞", "獎品"],
+  [1345, "problem", "名詞", "問題"],
+  [1346, "produce", "動詞", "生產"],
+  [1347, "production", "名詞", "生產"],
+  [1348, "program", "名詞", "節目；程式"],
+  [1349, "progress", "名詞", "進步"],
+  [1350, "project", "名詞", "專案"],
+  [1351, "promise", "動詞", "承諾"],
+  [1352, "pronounce", "動詞", "發音"],
+  [1353, "protect", "動詞", "保護"],
+  [1354, "proud", "形容詞", "驕傲的"],
+  [1355, "provide", "動詞", "提供"],
+  [1356, "public", "形容詞", "公眾的；公共的"],
+  [1357, "pull", "動詞", "拉"],
+  [1358, "pumpkin", "名詞", "南瓜"],
+  [1359, "punish", "動詞", "懲罰"],
+  [1360, "puppy", "名詞", "小狗"],
+  [1361, "purple", "名詞", "紫色"],
+  [1362, "purpose", "名詞", "目的"],
+  [1363, "purse", "名詞", "錢包（女用）"],
+  [1364, "push", "動詞", "推"],
+  [1365, "put", "動詞", "放"],
+  [1366, "puzzle", "名詞", "拼圖；謎題"],
+  [1367, "quarter", "名詞", "一刻鐘；四分之一"],
+  [1368, "queen", "名詞", "女王"],
+  [1369, "question", "名詞", "問題"],
+  [1370, "quiet", "形容詞", "安靜的"],
+  [1371, "quit", "動詞", "退出"],
+  [1372, "quiz", "名詞", "小考"],
+  [1373, "rabbit", "名詞", "兔子"],
+  [1374, "race", "名詞", "賽跑；競賽"],
+  [1375, "radio", "名詞", "收音機"],
+  [1376, "railroad", "名詞", "鐵路"],
+  [1377, "railway", "名詞", "鐵道"],
+  [1378, "rain", "動詞", "下雨"],
+  [1379, "rainbow", "名詞", "彩虹"],
+  [1380, "raincoat", "名詞", "雨衣"],
+  [1381, "rainy", "形容詞", "下雨的"],
+  [1382, "raise", "動詞", "提高；撫養"],
+  [1383, "rare", "形容詞", "稀有的"],
+  [1384, "rat", "名詞", "大鼠"],
+  [1385, "reach", "動詞", "到達"],
+  [1386, "read", "動詞", "閱讀"],
+  [1387, "ready", "形容詞", "準備好的"],
+  [1388, "real", "形容詞", "真實的"],
+  [1389, "realize", "動詞", "意識到"],
+  [1390, "really", "副詞", "真地"],
+  [1391, "reason", "名詞", "理由"],
+  [1392, "receive", "動詞", "接收"],
+  [1393, "record", "名詞", "紀錄"],
+  [1394, "recover", "動詞", "恢復；痊癒"],
+  [1395, "rectangle", "名詞", "長方形"],
+  [1396, "recycle", "動詞", "回收"],
+  [1397, "red", "名詞", "紅色"],
+  [1398, "refrigerator", "名詞", "冰箱"],
+  [1399, "refuse", "動詞", "拒絕"],
+  [1400, "regret", "動詞", "後悔"],
+  [1401, "regular", "形容詞", "規律的；定期的"],
+  [1402, "reject", "動詞", "拒絕"],
+  [1403, "relative", "名詞", "親戚"],
+  [1404, "remember", "動詞", "記得"],
+  [1405, "remind", "動詞", "提醒"],
+  [1406, "rent", "動詞", "租用"],
+  [1407, "repair", "動詞", "修復"],
+  [1408, "repeat", "動詞", "重複"],
+  [1409, "report", "名詞", "報告"],
+  [1410, "reporter", "名詞", "記者"],
+  [1411, "respect", "動詞", "尊重"],
+  [1412, "responsible", "形容詞", "負責的"],
+  [1413, "rest", "動詞", "休息"],
+  [1414, "restaurant", "名詞", "餐廳"],
+  [1415, "restroom", "名詞", "洗手間"],
+  [1416, "result", "名詞", "結果"],
+  [1417, "return", "動詞", "歸還"],
+  [1418, "review", "動詞", "複習"],
+  [1419, "revise", "動詞", "修改"],
+  [1420, "rice", "名詞", "米飯"],
+  [1421, "rich", "形容詞", "有錢的"],
+  [1422, "ride", "動詞", "騎乘；搭乘"],
+  [1423, "right", "形容詞", "右邊的"],
+  [1424, "right", "形容詞", "正確的；右邊的"],
+  [1425, "ring", "名詞", "戒指"],
+  [1426, "rise", "動詞", "上升"],
+  [1427, "river", "名詞", "河流"],
+  [1428, "rob", "動詞", "搶劫"],
+  [1429, "robot", "名詞", "機器人"],
+  [1430, "rock", "名詞", "岩石"],
+  [1431, "role", "名詞", "角色"],
+  [1432, "roll", "動詞", "滾動"],
+  [1433, "roller blade", "動詞", "溜直排輪"],
+  [1434, "roller skate", "動詞", "溜輪鞋"],
+  [1435, "roof", "名詞", "屋頂"],
+  [1436, "room", "名詞", "房間"],
+  [1437, "root", "名詞", "根"],
+  [1438, "rope", "名詞", "繩子"],
+  [1439, "rose", "名詞", "玫瑰"],
+  [1440, "round", "形容詞", "圓形的"],
+  [1441, "row", "名詞", "排；行"],
+  [1442, "rub", "動詞", "摩擦"],
+  [1443, "rude", "形容詞", "粗魯的"],
+  [1444, "ruin", "動詞", "毀滅"],
+  [1445, "rule", "名詞", "規則"],
+  [1446, "ruler", "名詞", "尺"],
+  [1447, "run", "動詞", "跑步"],
+  [1448, "run", "動詞", "跑"],
+  [1449, "sad", "形容詞", "難過的"],
+  [1450, "safe", "形容詞", "安全的"],
+  [1451, "safety", "名詞", "安全"],
+  [1452, "sail", "動詞", "航行"],
+  [1453, "sailor", "名詞", "水手"],
+  [1454, "salad", "名詞", "沙拉"],
+  [1455, "sale", "名詞", "拍賣；銷售"],
+  [1456, "salesman", "名詞", "銷售員"],
+  [1457, "salt", "名詞", "鹽"],
+  [1458, "same", "形容詞", "相同的"],
+  [1459, "sample", "名詞", "樣品"],
+  [1460, "sand", "名詞", "沙子"],
+  [1461, "sandwich", "名詞", "三明治"],
+  [1462, "satisfy", "動詞", "滿足"],
+  [1463, "Saturday", "名詞", "星期六"],
+  [1464, "save", "動詞", "拯救；儲存"],
+  [1465, "say", "動詞", "說"],
+  [1466, "scared", "形容詞", "害怕的"],
+  [1467, "scarf", "名詞", "圍巾"],
+  [1468, "scene", "名詞", "場景"],
+  [1469, "scenery", "名詞", "風景"],
+  [1470, "school", "名詞", "學校"],
+  [1471, "science", "名詞", "科學"],
+  [1472, "scientist", "名詞", "科學家"],
+  [1473, "scooter", "名詞", "速克達；小摩托車"],
+  [1474, "score", "名詞", "分數"],
+  [1475, "screen", "名詞", "螢幕"],
+  [1476, "sea", "名詞", "海"],
+  [1477, "seafood", "名詞", "海鮮"],
+  [1478, "search", "動詞", "搜尋"],
+  [1479, "season", "名詞", "季節"],
+  [1480, "seat", "名詞", "座位"],
+  [1481, "second", "名詞", "第二"],
+  [1482, "second", "名詞", "秒"],
+  [1483, "secondary", "形容詞", "次要的"],
+  [1484, "secret", "名詞", "秘密"],
+  [1485, "secretary", "名詞", "秘書"],
+  [1486, "section", "名詞", "部分"],
+  [1487, "see", "動詞", "看見"],
+  [1488, "seed", "名詞", "種子"],
+  [1489, "seem", "動詞", "似乎"],
+  [1490, "seesaw", "名詞", "翹翹板"],
+  [1491, "seldom", "副詞", "很少"],
+  [1492, "select", "動詞", "選擇"],
+  [1493, "selfish", "形容詞", "自私的"],
+  [1494, "sell", "動詞", "賣"],
+  [1495, "semester", "名詞", "學期"],
+  [1496, "send", "動詞", "傳送"],
+  [1497, "senior high school", "名詞", "高中"],
+  [1498, "sense", "名詞", "感覺；理智"],
+  [1499, "sentence", "名詞", "句子"],
+  [1500, "September", "名詞", "九月"],
+  [1501, "serious", "形容詞", "嚴肅的；嚴重的"],
+  [1502, "servant", "名詞", "僕人"],
+  [1503, "serve", "動詞", "服務"],
+  [1504, "service", "名詞", "服務"],
+  [1505, "set", "名詞", "一套"],
+  [1506, "seven", "名詞", "七"],
+  [1507, "seventeen", "名詞", "十七"],
+  [1508, "seventy", "名詞", "七十"],
+  [1509, "several", "限定詞", "幾個"],
+  [1510, "shake", "動詞", "搖動"],
+  [1511, "shape", "名詞", "形狀"],
+  [1512, "share", "動詞", "分享"],
+  [1513, "shark", "名詞", "鯊魚"],
+  [1514, "sharp", "形容詞", "鋒利的；尖銳的"],
+  [1515, "she", "代名詞(主格)", "她"],
+  [1516, "sheep", "名詞", "綿羊"],
+  [1517, "sheet", "名詞", "床單"],
+  [1518, "sheet", "名詞", "一張（紙）"],
+  [1519, "shelf", "名詞", "架子"],
+  [1520, "shine", "動詞", "照耀"],
+  [1521, "ship", "名詞", "船（大船）"],
+  [1522, "shirt", "名詞", "襯衫"],
+  [1523, "shoes", "名詞", "鞋子"],
+  [1524, "shoot", "動詞", "射擊"],
+  [1525, "shop", "名詞", "商店"],
+  [1526, "shopkeeper", "名詞", "店主"],
+  [1527, "shore", "名詞", "岸"],
+  [1528, "short", "形容詞", "矮的"],
+  [1529, "short", "形容詞", "短的；矮的"],
+  [1530, "shorts", "名詞", "短褲"],
+  [1531, "shoulder", "名詞", "肩膀"],
+  [1532, "shout", "動詞", "喊叫"],
+  [1533, "show", "動詞", "展示"],
+  [1534, "shower", "名詞", "陣雨"],
+  [1535, "shrimp", "名詞", "蝦"],
+  [1536, "shut", "動詞", "關閉"],
+  [1537, "shy", "形容詞", "害羞的"],
+  [1538, "sick", "形容詞", "生病的"],
+  [1539, "side", "名詞", "邊；側"],
+  [1540, "sidewalk", "名詞", "人行道"],
+  [1541, "sight", "名詞", "景象"],
+  [1542, "sign", "動詞", "簽名"],
+  [1543, "silence", "名詞", "寂靜"],
+  [1544, "silent", "形容詞", "沉默的"],
+  [1545, "silly", "形容詞", "傻的"],
+  [1546, "silver", "名詞", "銀"],
+  [1547, "similar", "形容詞", "相似的"],
+  [1548, "since", "介系詞", "自從…"],
+  [1549, "since", "連接詞", "自從；既然"],
+  [1550, "sincere", "形容詞", "真誠的"],
+  [1551, "sing", "動詞", "唱歌"],
+  [1552, "singer", "名詞", "歌手"],
+  [1553, "single", "形容詞", "單一的；單身的"],
+  [1554, "sink", "名詞", "水槽"],
+  [1555, "sister", "名詞", "姊妹"],
+  [1556, "six", "名詞", "六"],
+  [1557, "sixteen", "名詞", "十六"],
+  [1558, "sixty", "名詞", "六十"],
+  [1559, "size", "名詞", "尺寸"],
+  [1560, "skate", "動詞", "溜冰"],
+  [1561, "ski", "動詞", "滑雪"],
+  [1562, "skill", "名詞", "技能"],
+  [1563, "skillful", "形容詞", "熟練的"],
+  [1564, "skin", "名詞", "皮膚"],
+  [1565, "skinny", "形容詞", "極瘦的"],
+  [1566, "skirt", "名詞", "裙子"],
+  [1567, "sky", "名詞", "天空"],
+  [1568, "sleep", "動詞", "睡覺"],
+  [1569, "sleepy", "形容詞", "想睡的"],
+  [1570, "slender", "形容詞", "苗條的"],
+  [1571, "slice", "動詞", "切片"],
+  [1572, "slide", "名詞", "溜滑梯"],
+  [1573, "slim", "形容詞", "纖細的"],
+  [1574, "slippers", "名詞", "拖鞋"],
+  [1575, "slow", "形容詞", "慢的"],
+  [1576, "small", "形容詞", "小的"],
+  [1577, "smart", "形容詞", "聰明的"],
+  [1578, "smell", "動詞", "聞"],
+  [1579, "smile", "名詞", "微笑"],
+  [1580, "smoke", "動詞", "抽煙"],
+  [1581, "snack", "名詞", "點心"],
+  [1582, "snail", "名詞", "蝸牛"],
+  [1583, "snake", "名詞", "蛇"],
+  [1584, "sneakers", "名詞", "運動鞋"],
+  [1585, "sneaky", "形容詞", "鬼鬼祟祟的"],
+  [1586, "snow", "名詞", "雪"],
+  [1587, "snowy", "形容詞", "下雪的"],
+  [1588, "so", "副詞", "如此；這麼"],
+  [1589, "soap", "名詞", "肥皂"],
+  [1590, "soccer", "名詞", "足球"],
+  [1591, "social", "形容詞", "社會的；社交的"],
+  [1592, "social science", "名詞", "社會科學"],
+  [1593, "society", "名詞", "社會"],
+  [1594, "socks", "名詞", "襪子"],
+  [1595, "soda", "名詞", "汽水"],
+  [1596, "sofa", "名詞", "沙發"],
+  [1597, "soft drink", "名詞", "軟性飲料"],
+  [1598, "softball", "名詞", "壘球"],
+  [1599, "soldier", "名詞", "士兵"],
+  [1600, "solve", "動詞", "解決"],
+  [1601, "some", "代名詞", "一些"],
+  [1602, "someone", "代名詞", "某人"],
+  [1603, "something", "代名詞", "某事"],
+  [1604, "sometimes", "副詞", "有時候"],
+  [1605, "somewhere", "副詞", "某個地方"],
+  [1606, "son", "名詞", "兒子"],
+  [1607, "song", "名詞", "歌曲"],
+  [1608, "soon", "副詞", "很快；不久"],
+  [1609, "sore throat", "名詞", "喉嚨痛"],
+  [1610, "sorry", "形容詞", "抱歉的；難過的"],
+  [1611, "soul", "名詞", "靈魂"],
+  [1612, "sound", "動詞", "聽起來"],
+  [1613, "soup", "名詞", "湯"],
+  [1614, "sour", "形容詞", "酸的"],
+  [1615, "south", "形容詞", "南方的"],
+  [1616, "soy sauce", "名詞", "醬油"],
+  [1617, "space", "名詞", "空間"],
+  [1618, "spaghetti", "名詞", "義大利麵"],
+  [1619, "speak", "動詞", "說話"],
+  [1620, "speaker", "名詞", "喇叭"],
+  [1621, "special", "形容詞", "特別的"],
+  [1622, "speech", "名詞", "演講"],
+  [1623, "speed", "名詞", "速度"],
+  [1624, "spell", "動詞", "拼寫"],
+  [1625, "spend", "動詞", "花費"],
+  [1626, "spider", "名詞", "蜘蛛"],
+  [1627, "spirit", "名詞", "精神"],
+  [1628, "spoon", "名詞", "湯匙"],
+  [1629, "sports", "名詞", "運動"],
+  [1630, "spot", "名詞", "污點"],
+  [1631, "spread", "動詞", "塗抹"],
+  [1632, "spring", "名詞", "春天"],
+  [1633, "spring", "名詞", "泉水"],
+  [1634, "square", "名詞", "正方形"],
+  [1635, "stairs", "名詞", "樓梯"],
+  [1636, "stamp", "名詞", "郵票"],
+  [1637, "stand", "動詞", "站立"],
+  [1638, "star", "名詞", "星星"],
+  [1639, "start", "動詞", "開始"],
+  [1640, "state", "名詞", "狀態；州"],
+  [1641, "station", "名詞", "車站"],
+  [1642, "stationery store", "名詞", "文具店"],
+  [1643, "stay", "動詞", "停留"],
+  [1644, "steak", "名詞", "牛排"],
+  [1645, "steal", "動詞", "偷竊"],
+  [1646, "steam", "名詞", "蒸汽"],
+  [1647, "step", "名詞", "步驟；腳步"],
+  [1648, "still", "副詞", "仍然"],
+  [1649, "stingy", "形容詞", "小氣的"],
+  [1650, "stomach", "名詞", "胃"],
+  [1651, "stomachache", "名詞", "胃痛"],
+  [1652, "stone", "名詞", "石頭"],
+  [1653, "stop", "動詞", "停止"],
+  [1654, "stopwatch", "名詞", "碼表"],
+  [1655, "store", "名詞", "商店"],
+  [1656, "storm", "名詞", "暴風雨"],
+  [1657, "stormy", "形容詞", "暴風雨的"],
+  [1658, "story", "名詞", "故事"],
+  [1659, "stove", "名詞", "爐子"],
+  [1660, "straight", "形容詞", "直的"],
+  [1661, "strange", "形容詞", "奇怪的"],
+  [1662, "stranger", "名詞", "陌生人"],
+  [1663, "straw", "名詞", "吸管"],
+  [1664, "strawberry", "名詞", "草莓"],
+  [1665, "stream", "名詞", "溪流"],
+  [1666, "street", "名詞", "街道"],
+  [1667, "strike", "動詞", "打擊；罷工"],
+  [1668, "string", "名詞", "細繩"],
+  [1669, "strong", "形容詞", "強壯的"],
+  [1670, "student", "名詞", "學生"],
+  [1671, "study", "動詞", "研讀"],
+  [1672, "stupid", "形容詞", "笨的"],
+  [1673, "style", "名詞", "風格"],
+  [1674, "subject", "名詞", "主題；科目"],
+  [1675, "subway", "名詞", "地鐵"],
+  [1676, "succeed", "動詞", "成功"],
+  [1677, "success", "名詞", "成功"],
+  [1678, "successful", "形容詞", "成功的"],
+  [1679, "sudden", "形容詞", "突然的"],
+  [1680, "sugar", "名詞", "糖"],
+  [1681, "suggest", "動詞", "建議"],
+  [1682, "suit", "名詞", "西裝"],
+  [1683, "summer", "名詞", "夏天"],
+  [1684, "sun", "名詞", "太陽"],
+  [1685, "Sunday", "名詞", "星期日"],
+  [1686, "sunny", "形容詞", "陽光充足的"],
+  [1687, "super", "形容詞", "超級的"],
+  [1688, "supermarket", "名詞", "超市"],
+  [1689, "supper", "名詞", "消夜"],
+  [1690, "support", "動詞", "支持"],
+  [1691, "surf", "動詞", "衝浪"],
+  [1692, "surprise", "動詞", "使驚訝"],
+  [1693, "surprised", "形容詞", "感到驚訝的"],
+  [1694, "survive", "動詞", "生存"],
+  [1695, "swallow", "動詞", "吞嚥"],
+  [1696, "swan", "名詞", "天鵝"],
+  [1697, "sweater", "名詞", "毛衣"],
+  [1698, "sweep", "動詞", "清掃"],
+  [1699, "sweet", "形容詞", "甜的"],
+  [1700, "swim", "動詞", "游泳"],
+  [1701, "swimsuit", "名詞", "泳衣"],
+  [1702, "swing", "名詞", "鞦韆；搖擺"],
+  [1703, "symbol", "名詞", "符號"],
+  [1704, "system", "名詞", "系統"],
+  [1705, "table", "名詞", "桌子"],
+  [1706, "table tennis", "名詞", "桌球"],
+  [1707, "tail", "名詞", "尾巴"],
+  [1708, "Taiwanese", "名詞", "台灣人"],
+  [1709, "take", "動詞", "拿；帶"],
+  [1710, "talent", "名詞", "天賦"],
+  [1711, "talk", "動詞", "談話"],
+  [1712, "talkative", "形容詞", "健談的"],
+  [1713, "tall", "形容詞", "高的"],
+  [1714, "tangerine", "名詞", "橘子"],
+  [1715, "tank", "名詞", "坦克車"],
+  [1716, "taste", "動詞", "嘗起來"],
+  [1717, "taxi", "名詞", "計程車"],
+  [1718, "tea", "名詞", "茶"],
+  [1719, "teach", "動詞", "教學"],
+  [1720, "teacher", "名詞", "老師"],
+  [1721, "Teacher’s Day", "名詞", "教師節"],
+  [1722, "team", "名詞", "隊伍"],
+  [1723, "teapot", "名詞", "茶壺"],
+  [1724, "tear", "名詞", "眼淚"],
+  [1725, "teenager", "名詞", "青少年"],
+  [1726, "telephone", "名詞", "電話"],
+  [1727, "television", "名詞", "電視"],
+  [1728, "tell", "動詞", "告訴"],
+  [1729, "temperature", "名詞", "溫度"],
+  [1730, "temple", "名詞", "寺廟"],
+  [1731, "ten", "名詞", "十"],
+  [1732, "tennis", "名詞", "網球"],
+  [1733, "tent", "名詞", "帳篷"],
+  [1734, "term", "名詞", "學期"],
+  [1735, "terrible", "形容詞", "糟糕的；可怕的"],
+  [1736, "terrific", "形容詞", "極好的"],
+  [1737, "test", "名詞", "測驗"],
+  [1738, "textbook", "名詞", "教科書"],
+  [1739, "than", "介系詞", "比…"],
+  [1740, "than", "連接詞", "比"],
+  [1741, "thank", "動詞", "感謝"],
+  [1742, "Thanksgiving", "名詞", "感恩節"],
+  [1743, "that", "限定詞", "那個（遠指單數）"],
+  [1744, "theater", "名詞", "劇院"],
+  [1745, "their", "所有格", "他們的"],
+  [1746, "their", "所有格", "他們的；它們的"],
+  [1747, "theirs", "代名詞", "他們的；它們的"],
+  [1748, "them", "代名詞(受格)", "他們；它們"],
+  [1749, "themselves", "代名詞", "他們自己；它們自己"],
+  [1750, "then", "副詞", "然後"],
+  [1751, "therefore", "副詞", "因此"],
+  [1752, "these", "限定詞", "這些（近指複數）"],
+  [1753, "they", "代名詞(主格)", "他們；它們"],
+  [1754, "thick", "形容詞", "厚的"],
+  [1755, "thief", "名詞", "小偷"],
+  [1756, "thin", "形容詞", "瘦的"],
+  [1757, "thing", "名詞", "東西"],
+  [1758, "think", "動詞", "思考"],
+  [1759, "third", "名詞", "第三"],
+  [1760, "thirsty", "形容詞", "渴的"],
+  [1761, "thirteen", "名詞", "十三"],
+  [1762, "thirty", "名詞", "三十"],
+  [1763, "this", "限定詞", "這個（近指單數）"],
+  [1764, "those", "限定詞", "那些（遠指複數）"],
+  [1765, "though", "連接詞", "雖然"],
+  [1766, "thought", "名詞", "想法"],
+  [1767, "thousand", "名詞", "千"],
+  [1768, "three", "名詞", "三"],
+  [1769, "throat", "名詞", "喉嚨"],
+  [1770, "through", "介系詞", "穿過；透過"],
+  [1771, "throw", "動詞", "丟擲"],
+  [1772, "thumb", "名詞", "拇指"],
+  [1773, "thunder", "名詞", "雷聲"],
+  [1774, "Thursday", "名詞", "星期四"],
+  [1775, "ticket", "名詞", "票"],
+  [1776, "tidy", "形容詞", "整潔的"],
+  [1777, "tie", "名詞", "領帶"],
+  [1778, "tiger", "名詞", "老虎"],
+  [1779, "time", "名詞", "時間"],
+  [1780, "tiny", "形容詞", "微小的"],
+  [1781, "tip", "名詞", "小費；提示"],
+  [1782, "tired", "形容詞", "疲倦的"],
+  [1783, "title", "名詞", "標題"],
+  [1784, "to", "介系詞", "到…；向…"],
+  [1785, "toast", "名詞", "吐司"],
+  [1786, "today", "名詞", "今天"],
+  [1787, "toe", "名詞", "腳趾"],
+  [1788, "tofu", "名詞", "豆腐"],
+  [1789, "together", "副詞", "一起"],
+  [1790, "toilet", "名詞", "馬桶"],
+  [1791, "tomato", "名詞", "番茄"],
+  [1792, "tomorrow", "名詞", "明天"],
+  [1793, "tongue", "名詞", "舌頭"],
+  [1794, "tonight", "名詞", "今晚"],
+  [1795, "tool", "名詞", "工具"],
+  [1796, "tooth", "名詞", "牙齒"],
+  [1797, "toothache", "名詞", "牙痛"],
+  [1798, "toothbrush", "名詞", "牙刷"],
+  [1799, "top", "形容詞", "頂部的"],
+  [1800, "topic", "名詞", "話題"],
+  [1801, "total", "名詞", "總數"],
+  [1802, "touch", "動詞", "觸摸"],
+  [1803, "toward", "介系詞", "朝向…"],
+  [1804, "towel", "名詞", "毛巾"],
+  [1805, "tower", "名詞", "塔"],
+  [1806, "town", "名詞", "城鎮"],
+  [1807, "toy", "名詞", "玩具"],
+  [1808, "trade", "名詞", "貿易"],
+  [1809, "tradition", "名詞", "傳統"],
+  [1810, "traditional", "形容詞", "傳統的"],
+  [1811, "traffic", "名詞", "交通"],
+  [1812, "train", "名詞", "火車"],
+  [1813, "train station", "名詞", "火車站"],
+  [1814, "trash", "名詞", "垃圾"],
+  [1815, "trash can", "名詞", "垃圾桶"],
+  [1816, "travel", "動詞", "旅行"],
+  [1817, "treasure", "名詞", "寶藏"],
+  [1818, "treat", "名詞", "款待"],
+  [1819, "treat", "動詞", "對待"],
+  [1820, "tree", "名詞", "樹"],
+  [1821, "triangle", "名詞", "三角形"],
+  [1822, "trick", "名詞", "詭計"],
+  [1823, "trip", "名詞", "旅行"],
+  [1824, "trouble", "名詞", "麻煩"],
+  [1825, "truck", "名詞", "卡車"],
+  [1826, "trumpet", "名詞", "小喇叭"],
+  [1827, "trust", "動詞", "信任"],
+  [1828, "truth", "名詞", "真相"],
+  [1829, "try", "動詞", "嘗試"],
+  [1830, "T-shirt", "名詞", "T恤"],
+  [1831, "tub", "名詞", "浴缸"],
+  [1832, "tube", "名詞", "管子"],
+  [1833, "Tuesday", "名詞", "星期二"],
+  [1834, "tunnel", "名詞", "隧道"],
+  [1835, "turkey", "名詞", "火雞"],
+  [1836, "turn", "動詞", "轉彎"],
+  [1837, "turtle", "名詞", "烏龜"],
+  [1838, "twelve", "名詞", "十二"],
+  [1839, "twenty", "名詞", "二十"],
+  [1840, "twice", "副詞", "兩次"],
+  [1841, "two", "名詞", "二"],
+  [1842, "type", "動詞", "打字"],
+  [1843, "typhoon", "名詞", "颱風"],
+  [1844, "ugly", "形容詞", "醜陋的"],
+  [1845, "umbrella", "名詞", "雨傘"],
+  [1846, "uncle", "名詞", "叔叔；舅舅"],
+  [1847, "under", "介系詞", "在…下面"],
+  [1848, "underline", "動詞", "畫底線"],
+  [1849, "underpass", "名詞", "地下道"],
+  [1850, "understand", "動詞", "理解"],
+  [1851, "underwear", "名詞", "內衣"],
+  [1852, "under-weight", "形容詞", "體重不足的"],
+  [1853, "unhappy", "形容詞", "不快樂的"],
+  [1854, "uniform", "名詞", "制服"],
+  [1855, "unique", "形容詞", "獨特的"],
+  [1856, "universe", "名詞", "宇宙"],
+  [1857, "university", "名詞", "大學"],
+  [1858, "until", "介系詞", "直到…"],
+  [1859, "up", "介系詞", "沿…而上"],
+  [1860, "upload", "動詞", "上傳"],
+  [1861, "upstairs", "名詞", "樓上"],
+  [1862, "us", "代名詞(受格)", "我們"],
+  [1863, "use", "動詞", "使用"],
+  [1864, "useful", "形容詞", "有用的"],
+  [1865, "usually", "副詞", "通常"],
+  [1866, "vacation", "名詞", "假期"],
+  [1867, "Valentine’s Day", "名詞", "情人節"],
+  [1868, "valley", "名詞", "山谷"],
+  [1869, "valuable", "形容詞", "有價值的"],
+  [1870, "value", "名詞", "價值"],
+  [1871, "vegetable", "名詞", "蔬菜"],
+  [1872, "vendor", "名詞", "小販"],
+  [1873, "very", "副詞", "非常"],
+  [1874, "vest", "名詞", "背心"],
+  [1875, "victory", "名詞", "勝利"],
+  [1876, "video", "名詞", "影片；錄影機"],
+  [1877, "village", "名詞", "村莊"],
+  [1878, "vinegar", "名詞", "醋"],
+  [1879, "violin", "名詞", "小提琴"],
+  [1880, "visit", "動詞", "拜訪"],
+  [1881, "visitor", "名詞", "訪客"],
+  [1882, "vocabulary", "名詞", "字彙"],
+  [1883, "voice", "名詞", "聲音"],
+  [1884, "volleyball", "名詞", "排球"],
+  [1885, "vote", "動詞", "投票"],
+  [1886, "waist", "名詞", "腰部"],
+  [1887, "wait", "動詞", "等待"],
+  [1888, "waiter", "名詞", "服務生（男性）"],
+  [1889, "waitress", "名詞", "服務生（女性）"],
+  [1890, "wake", "動詞", "醒來"],
+  [1891, "walk", "動詞", "走路"],
+  [1892, "wall", "名詞", "牆"],
+  [1893, "wallet", "名詞", "皮夾（男用）"],
+  [1894, "want", "動詞", "想要"],
+  [1895, "war", "名詞", "戰爭"],
+  [1896, "warm", "形容詞", "溫暖的"],
+  [1897, "wash", "動詞", "清洗"],
+  [1898, "waste", "動詞", "浪費"],
+  [1899, "watch", "名詞", "手錶"],
+  [1900, "watch", "動詞", "觀看"],
+  [1901, "water", "名詞", "水"],
+  [1902, "waterfalls", "名詞", "瀑布"],
+  [1903, "watermelon", "名詞", "西瓜"],
+  [1904, "wave", "動詞", "揮手"],
+  [1905, "way", "名詞", "方式；道路"],
+  [1906, "we", "代名詞(主格)", "我們"],
+  [1907, "weak", "形容詞", "虛弱的"],
+  [1908, "wear", "動詞", "穿著"],
+  [1909, "weather", "名詞", "天氣"],
+  [1910, "wedding", "名詞", "婚禮"],
+  [1911, "Wednesday", "名詞", "星期三"],
+  [1912, "week", "名詞", "星期；週"],
+  [1913, "weekday", "名詞", "平日（週一至週五）"],
+  [1914, "weekend", "名詞", "週末"],
+  [1915, "weight", "名詞", "重量"],
+  [1916, "welcome", "動詞", "歡迎"],
+  [1917, "well", "形容詞", "身體健康的"],
+  [1918, "west", "形容詞", "西方的"],
+  [1919, "wet", "形容詞", "潮濕的"],
+  [1920, "whale", "名詞", "鯨魚"],
+  [1921, "what", "疑問詞", "什麼"],
+  [1922, "wheel", "名詞", "輪子"],
+  [1923, "when", "疑問詞", "何時"],
+  [1924, "where", "疑問詞", "在哪裡"],
+  [1925, "whether", "連接詞", "是否"],
+  [1926, "which", "疑問詞", "哪一個"],
+  [1927, "while", "連接詞", "當…時；然而"],
+  [1928, "white", "名詞", "白色"],
+  [1929, "who", "疑問詞", "誰"],
+  [1930, "whose", "疑問詞", "誰的"],
+  [1931, "why", "疑問詞", "為什麼"],
+  [1932, "wide", "形容詞", "寬的"],
+  [1933, "wife", "名詞", "妻子"],
+  [1934, "wild", "形容詞", "野生的；狂野的"],
+  [1935, "win", "動詞", "贏得"],
+  [1936, "wind", "名詞", "風"],
+  [1937, "window", "名詞", "窗戶"],
+  [1938, "windy", "形容詞", "多風的"],
+  [1939, "wing", "名詞", "翅膀"],
+  [1940, "winner", "名詞", "贏家"],
+  [1941, "winter", "名詞", "冬天"],
+  [1942, "wise", "形容詞", "有智慧的"],
+  [1943, "wish", "動詞", "希望"],
+  [1944, "with", "介系詞", "和…一起；用…"],
+  [1945, "without", "介系詞", "沒有…"],
+  [1946, "wok", "名詞", "炒鍋"],
+  [1947, "wolf", "名詞", "狼"],
+  [1948, "woman", "名詞", "女人"],
+  [1949, "women’s room", "名詞", "女廁"],
+  [1950, "wonderful", "形容詞", "美妙的"],
+  [1951, "wood", "名詞", "木材"],
+  [1952, "woods", "名詞", "樹林"],
+  [1953, "word", "名詞", "字詞"],
+  [1954, "workbook", "名詞", "練習本"],
+  [1955, "worm", "名詞", "蠕蟲"],
+  [1956, "worry", "動詞", "擔心"],
+  [1957, "wound", "名詞", "創傷；傷口"],
+  [1958, "wrist", "名詞", "手腕"],
+  [1959, "write", "動詞", "書寫"],
+  [1960, "writer", "名詞", "作家"],
+  [1961, "wrong", "形容詞", "錯誤的"],
+  [1962, "yard", "名詞", "院子"],
+  [1963, "yard", "名詞", "碼"],
+  [1964, "year", "名詞", "年"],
+  [1965, "yell", "動詞", "大叫"],
+  [1966, "yellow", "名詞", "黃色"],
+  [1967, "yesterday", "名詞", "昨天"],
+  [1968, "yet", "副詞", "尚未；但是"],
+  [1969, "you", "代名詞(主/受格)", "你；你們"],
+  [1970, "young", "形容詞", "年輕的"],
+  [1971, "your", "所有格", "你的；你們的"],
+  [1972, "yours", "代名詞", "你的；你們的"],
+  [1973, "yourself", "代名詞", "你自己"],
+  [1974, "yourselves", "代名詞", "你們自己"],
+  [1975, "youth", "名詞", "青年"],
+  [1976, "yummy", "形容詞", "好吃的"],
+  [1977, "zebra", "名詞", "斑馬"],
+  [1978, "zero", "名詞", "零"],
+  [1979, "zoo", "名詞", "動物園"]
+    ];
+
+    const ALL_WORDS = WORD_DATA.map(([id, word, pos, meaning]) => ({
+      id, word, pos, meaning, day: Math.ceil(id / 4)
+    }));
+    const WORD_BY_ID = new Map(ALL_WORDS.map(w => [w.id, w]));
+
+    const STORAGE_KEY = 'vocab_mistakes_v2';
+    const QUIZ_SIZE = 10;
+
+    function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+    function safeSet(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+
+    let currentMode = 'choice';
+    let currentQuizList = [];
+    let currentQuestionIdx = 0;
+    let userAnswers = [];
+    let flashcardIdx = 0;
+
+    // 讀取錯題本：以編號對應最新單字庫，單字不符的舊資料直接丟棄
+    let mistakes = [];
+    try {
+      const raw = JSON.parse(safeGet(STORAGE_KEY) || '[]');
+      raw.forEach(m => {
+        const old = m && (m.wordItem || m);
+        const fresh = old && WORD_BY_ID.get(old.id);
+        if (fresh && String(old.word || '').replace(/_\d+$/, '').trim().toLowerCase() === fresh.word.toLowerCase()) {
+          mistakes.push({ wordItem: fresh, streak: (m && m.streak) || 0 });
+        }
+      });
+    } catch (e) { mistakes = []; }
+    saveMistakes();
+
+    function saveMistakes() { safeSet(STORAGE_KEY, JSON.stringify(mistakes)); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateMistakeBadge();
+      setupEventListeners();
+      updateStartLabel();
+    });
+
+    function updateStartLabel() {
+      const btn = document.getElementById('start-btn');
+      if (currentMode === 'flashcard') btn.textContent = '📖 依天數範圍開始瀏覽單字卡';
+      else if (currentMode === 'mistakes') btn.textContent = '⚠️ 從錯題本抽取最多 10 題開始';
+      else btn.textContent = '🔀 隨機抽取 10 題開始';
+    }
+
+    function setupEventListeners() {
+      document.getElementById('theme-btn').addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+      });
+
+      const modes = [
+        { id: 'mode-choice', mode: 'choice' },
+        { id: 'mode-spelling', mode: 'spelling' },
+        { id: 'mode-flashcard', mode: 'flashcard' },
+        { id: 'mode-mistakes', mode: 'mistakes' }
+      ];
+
+      modes.forEach(item => {
+        document.getElementById(item.id).addEventListener('click', (e) => {
+          document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('btn-active'));
+          e.currentTarget.classList.add('btn-active');
+          currentMode = item.mode;
+          updateStartLabel();
+        });
+      });
+
+      document.getElementById('start-btn').addEventListener('click', startSession);
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        document.getElementById('result-section').classList.add('hidden');
+        startSession();
+      });
+
+      document.getElementById('next-btn').addEventListener('click', handleNextQuestion);
+      document.getElementById('spelling-answer').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleNextQuestion();
+      });
+
+      document.getElementById('quiz-speak-btn').addEventListener('click', () => {
+        const item = currentQuizList[currentQuestionIdx];
+        if (item) speakWord(item.word);
+      });
+
+      document.getElementById('fc-speak-btn').addEventListener('click', () => {
+        const item = currentQuizList[flashcardIdx];
+        if (item) speakWord(item.word);
+      });
+
+      document.getElementById('fc-meaning').addEventListener('click', () => {
+        const item = currentQuizList[flashcardIdx];
+        if (item) document.getElementById('fc-meaning').innerText = `${item.pos} ${item.meaning}`;
+      });
+
+      document.getElementById('fc-prev-btn').addEventListener('click', () => {
+        if (flashcardIdx > 0) { flashcardIdx--; renderFlashcard(); }
+      });
+
+      document.getElementById('fc-next-btn').addEventListener('click', () => {
+        if (flashcardIdx < currentQuizList.length - 1) { flashcardIdx++; renderFlashcard(); }
+      });
+
+      // 結果清單中的發音按鈕（事件委派，避免單字含特殊符號）
+      document.getElementById('result-list').addEventListener('click', (e) => {
+        const b = e.target.closest('.audio-btn');
+        if (b && b.dataset.word) speakWord(b.dataset.word);
+      });
+    }
+
+    function speakWord(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function startSession() {
+      let startDay = parseInt(document.getElementById('start-day').value) || 1;
+      let endDay = parseInt(document.getElementById('end-day').value) || 495;
+      if (startDay > endDay) [startDay, endDay] = [endDay, startDay];
+
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('flashcard-section').classList.add('hidden');
+      document.getElementById('result-section').classList.add('hidden');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      if (currentMode === 'mistakes') {
+        if (mistakes.length === 0) {
+          alert('目前錯題本是空的！太棒了！');
+          return;
+        }
+        currentQuizList = shuffle(mistakes.map(m => m.wordItem)).slice(0, QUIZ_SIZE);
+      } else {
+        const filtered = ALL_WORDS.filter(w => w.day >= startDay && w.day <= endDay);
+        if (filtered.length === 0) {
+          alert('該天數範圍內沒有單字！');
+          return;
+        }
+        // 單字卡依 Day 順序瀏覽；測驗則隨機抽 10 題
+        currentQuizList = currentMode === 'flashcard' ? filtered : shuffle(filtered).slice(0, QUIZ_SIZE);
+      }
+
+      currentQuestionIdx = 0;
+      userAnswers = [];
+
+      if (currentMode === 'flashcard') {
+        flashcardIdx = 0;
+        document.getElementById('flashcard-section').classList.remove('hidden');
+        renderFlashcard();
+      } else {
+        document.getElementById('quiz-section').classList.remove('hidden');
+        renderQuestion();
+      }
+    }
+
+    function renderQuestion() {
+      const item = currentQuizList[currentQuestionIdx];
+      if (!item) return;
+
+      document.getElementById('quiz-current-step').innerText = `題目 ${currentQuestionIdx + 1} / ${currentQuizList.length}`;
+      document.getElementById('progress-fill').style.width = `${((currentQuestionIdx + 1) / currentQuizList.length) * 100}%`;
+      document.getElementById('next-btn').innerText = currentQuestionIdx === currentQuizList.length - 1 ? '完成並計分 ✔' : '下一題 ➔';
+
+      document.getElementById('word-pos').innerText = item.pos || '';
+      document.getElementById('word-day').innerText = `Day ${item.day}`;
+
+      const optionsContainer = document.getElementById('options-container');
+      const spellingContainer = document.getElementById('spelling-container');
+      const speakBtn = document.getElementById('quiz-speak-btn');
+
+      if (currentMode === 'choice' || currentMode === 'mistakes') {
+        optionsContainer.classList.remove('hidden');
+        spellingContainer.classList.add('hidden');
+        speakBtn.classList.remove('hidden');
+        document.getElementById('target-word').innerText = item.word;
+
+        optionsContainer.innerHTML = '';
+        generateUniqueOptions(item).forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'option-btn';
+          btn.innerHTML = `<span>${escapeHtml(opt.meaning)}</span><span>›</span>`;
+          btn.onclick = () => {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            btn.dataset.selectedWord = opt.word;
+            btn.dataset.selectedMeaning = opt.meaning;
+          };
+          optionsContainer.appendChild(btn);
+        });
+        speakWord(item.word);
+
+      } else if (currentMode === 'spelling') {
+        optionsContainer.classList.add('hidden');
+        spellingContainer.classList.remove('hidden');
+        speakBtn.classList.add('hidden'); // 拼字模式不提供發音，避免直接洩漏答案
+        document.getElementById('target-word').innerText = item.meaning;
+        const input = document.getElementById('spelling-answer');
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    // 選項：優先挑詞性相同、中文不重複的單字，不足再補其他詞性
+    function generateUniqueOptions(correctItem) {
+      const options = [correctItem];
+      const usedMeanings = new Set([correctItem.meaning]);
+      const pool = ALL_WORDS.filter(w => w.id !== correctItem.id && w.meaning !== correctItem.meaning);
+      const samePos = shuffle(pool.filter(w => w.pos === correctItem.pos));
+      const otherPos = shuffle(pool.filter(w => w.pos !== correctItem.pos));
+
+      for (const cand of [...samePos, ...otherPos]) {
+        if (options.length >= 4) break;
+        if (!usedMeanings.has(cand.meaning)) {
+          usedMeanings.add(cand.meaning);
+          options.push(cand);
+        }
+      }
+      return shuffle(options);
+    }
+
+    function handleNextQuestion() {
+      const item = currentQuizList[currentQuestionIdx];
+      if (!item) return;
+
+      let userAns = '';
+      let userAnsObj = null;
+
+      if (currentMode === 'choice' || currentMode === 'mistakes') {
+        const selectedBtn = document.querySelector('.option-btn.selected');
+        if (!selectedBtn) {
+          alert('請選擇一個答案！');
+          return;
+        }
+        userAns = selectedBtn.dataset.selectedMeaning;
+        userAnsObj = { word: selectedBtn.dataset.selectedWord, meaning: selectedBtn.dataset.selectedMeaning };
+      } else if (currentMode === 'spelling') {
+        userAns = document.getElementById('spelling-answer').value.trim();
+        if (!userAns) {
+          alert('請輸入答案！');
+          return;
+        }
+        userAnsObj = { word: userAns, meaning: userAns };
+      }
+
+      let isCorrect;
+      if (currentMode === 'spelling') {
+        // 中文意思相同的字（例如 advice / advise）都算對
+        const norm = s => s.toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, ' ').trim();
+        isCorrect = ALL_WORDS.some(w => w.meaning === item.meaning && norm(w.word) === norm(userAns));
+      } else {
+        isCorrect = userAns === item.meaning;
+      }
+
+      userAnswers.push({ target: item, userAns: userAnsObj, isCorrect });
+      currentQuestionIdx++;
+
+      if (currentQuestionIdx < currentQuizList.length) {
+        renderQuestion();
+      } else {
+        syncMistakesAndShowResults();
+      }
+    }
+
+    function syncMistakesAndShowResults() {
+      userAnswers.forEach(ans => {
+        const idx = mistakes.findIndex(m => m.wordItem.id === ans.target.id);
+        if (!ans.isCorrect) {
+          if (idx > -1) mistakes[idx].streak = 0;
+          else mistakes.push({ wordItem: ans.target, streak: 0 });
+        } else if (idx > -1) {
+          mistakes[idx].streak++;
+          if (mistakes[idx].streak >= 2) mistakes.splice(idx, 1); // 連續答對 2 次移出錯題本
+        }
+      });
+      saveMistakes();
+      updateMistakeBadge();
+      showResults();
+    }
+
+    function showResults() {
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('result-section').classList.remove('hidden');
+      document.getElementById('final-total').innerText = userAnswers.length;
+
+      let score = 0;
+      const resultList = document.getElementById('result-list');
+      resultList.innerHTML = '';
+
+      userAnswers.forEach((ans, idx) => {
+        if (ans.isCorrect) score++;
+
+        const div = document.createElement('div');
+        div.className = `result-item ${ans.isCorrect ? 'correct' : 'wrong'}`;
+
+        const t = ans.target;
+        const userDisplay = (currentMode === 'spelling' || ans.userAns.word === ans.userAns.meaning)
+          ? ans.userAns.meaning
+          : `${ans.userAns.meaning} (${ans.userAns.word})`;
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <strong>#${idx + 1} ${escapeHtml(t.word)} (${escapeHtml(t.pos)}) · Day ${t.day}</strong>
+            <button class="audio-btn" data-word="${escapeHtml(t.word)}">🔊</button>
+          </div>
+          <div>單字與解釋：${escapeHtml(t.word)} (${escapeHtml(t.meaning)})</div>
+          <div style="color: ${ans.isCorrect ? 'var(--success)' : 'var(--danger)'}">
+            您的回答：${escapeHtml(userDisplay)}
+          </div>
+          ${!ans.isCorrect ? `<div style="color: var(--primary);">正確解答：${escapeHtml(currentMode === 'spelling' ? t.word : t.meaning)}</div>` : ''}
+        `;
+        resultList.appendChild(div);
+      });
+
+      document.getElementById('final-score').innerText = score;
+    }
+
+    function renderFlashcard() {
+      const item = currentQuizList[flashcardIdx];
+      if (!item) return;
+      document.getElementById('fc-pos').innerText = item.pos || '';
+      document.getElementById('fc-day').innerText = `Day ${item.day}`;
+      document.getElementById('fc-count').innerText = `${flashcardIdx + 1} / ${currentQuizList.length}`;
+      document.getElementById('fc-word').innerText = item.word;
+      document.getElementById('fc-meaning').innerText = '點擊顯示中文解釋';
+      speakWord(item.word);
+    }
+
+    function updateMistakeBadge() {
+      document.getElementById('mistake-count').innerText = mistakes.length;
+    }
+  </script>
+</body>
+</html>
