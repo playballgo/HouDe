@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<script src="2000words.js"></script>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國中英語單字庫 - 國中單字王 2000 總複習測驗</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    body.dark-mode {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s; min-height: 100vh; padding: 20px 10px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 0; border-bottom: 2px solid var(--border-color); }
+    h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; color: var(--primary); }
+    .theme-toggle { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-main); }
+
+    .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border-color); }
+    
+    .config-panel { display: flex; flex-direction: column; gap: 15px; }
+    .config-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .input-group { display: flex; align-items: center; gap: 8px; }
+    input[type="number"] { width: 80px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); text-align: center; }
+    
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn:hover { background: var(--border-color); }
+    .btn-primary { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; font-size: 1.1rem; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-active { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-danger { background: var(--danger); color: white; border: none; }
+    
+    .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+    .badge-primary { background: #e0e7ff; color: #3730a3; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+
+    .quiz-progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .progress-bar-bg { width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+    .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+
+    .word-display { text-align: center; margin: 20px 0; }
+    .word-title { font-size: 2.2rem; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .audio-btn { background: #e0e7ff; color: var(--primary); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+    
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    @media (max-width: 500px) { .options-grid { grid-template-columns: 1fr; } }
+    .option-btn { padding: 15px; border-radius: 8px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 1rem; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+    .option-btn:hover { border-color: var(--primary); background: var(--bg-color); }
+    .option-btn.selected { border-color: var(--primary); background: #e0e7ff; color: #3730a3; }
+
+    .spelling-input { width: 100%; padding: 12px; font-size: 1.2rem; border-radius: 8px; border: 2px solid var(--border-color); background: var(--bg-color); color: var(--text-main); text-align: center; margin-top: 15px; }
+
+    .result-item { padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--border-color); background: var(--bg-color); }
+    .result-item.correct { border-left-color: var(--success); }
+    .result-item.wrong { border-left-color: var(--danger); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📘 國中英語單字庫</h1>
+      <button class="theme-toggle" id="theme-btn">🌙</button>
+    </header>
+
+    <!-- 主選單設定卡片 -->
+    <div class="card config-panel">
+      <h3>⚙️ 測驗與學習設定</h3>
+      <div class="config-row">
+        <div class="input-group">
+          <label>天數範圍 (Day 1 - 495):</label>
+          <input type="number" id="start-day" min="1" max="495" value="1">
+          <span>~</span>
+          <input type="number" id="end-day" min="1" max="495" value="495">
+        </div>
+      </div>
+      <div class="config-row">
+        <label>模式選擇：</label>
+        <div class="btn-group">
+          <button class="btn btn-active" id="mode-choice">選擇題</button>
+          <button class="btn" id="mode-spelling">拼字測驗</button>
+          <button class="btn" id="mode-flashcard">單字卡瀏覽</button>
+          <button class="btn btn-danger" id="mode-mistakes">⚠️ 錯題本 (<span id="mistake-count">0</span>)</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="start-btn">🔀 隨機抽取 10 題開始</button>
+    </div>
+
+    <!-- 測驗進行區塊 -->
+    <div class="card hidden" id="quiz-section">
+      <div class="quiz-progress">
+        <div><span id="quiz-current-step">題目 1 / 10</span></div>
+        <div class="badge badge-primary" id="quiz-status-badge">答題中 (結束後統一計分)</div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="word-display">
+        <span class="badge badge-primary" id="word-pos">n.</span>
+        <span class="badge badge-primary" id="word-day">Day 1</span>
+        <div class="word-title">
+          <span id="target-word">apple</span>
+          <button class="audio-btn" id="quiz-speak-btn">🔊</button>
+        </div>
+      </div>
+
+      <!-- 選擇題面板 -->
+      <div class="options-grid" id="options-container"></div>
+
+      <!-- 拼字面板 -->
+      <div class="hidden" id="spelling-container">
+        <input type="text" class="spelling-input" id="spelling-answer" placeholder="請輸入英文單字..." autocomplete="off">
+      </div>
+
+      <button class="btn btn-primary" id="next-btn" style="margin-top: 20px;">下一題 ➔</button>
+    </div>
+
+    <!-- 單字卡模式區塊 -->
+    <div class="card hidden" id="flashcard-section" style="text-align: center;">
+      <div style="margin-bottom: 10px;">
+        <span class="badge badge-primary" id="fc-pos">n.</span>
+        <span class="badge badge-primary" id="fc-day">Day 1</span>
+        <span class="badge badge-primary" id="fc-count">1 / 1</span>
+      </div>
+      <div class="word-title" style="font-size: 2.5rem; margin: 20px 0;">
+        <span id="fc-word">apple</span>
+        <button class="audio-btn" id="fc-speak-btn">🔊</button>
+      </div>
+      <div id="fc-meaning" style="font-size: 1.5rem; color: var(--primary); font-weight: bold; min-height: 2em; cursor: pointer;">
+        點擊顯示中文解釋
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+        <button class="btn" id="fc-prev-btn">⬅️ 上一個</button>
+        <button class="btn" id="fc-next-btn">下一步 ➡️</button>
+      </div>
+    </div>
+
+    <!-- 測驗結果總結區塊 -->
+    <div class="card hidden" id="result-section">
+      <h2 style="text-align: center; margin-bottom: 10px;">🎉 測驗完成！</h2>
+      <p style="text-align: center; font-size: 1.2rem; margin-bottom: 20px;">
+        得分：<span id="final-score" style="color:var(--primary); font-weight:bold;">0</span> / <span id="final-total">10</span>
+      </p>
+
+      <h3 style="margin-bottom: 15px;">詳細答題明細與解答：</h3>
+      <div id="result-list"></div>
+
+      <button class="btn btn-primary" id="restart-btn" style="margin-top: 20px;">🔄 再測驗一次</button>
+    </div>
+  </div>
+
+  <script>
+    const ALL_WORDS = WORD_DATA.map(([id, word, pos, meaning]) => ({
+      id, word, pos, meaning, day: Math.ceil(id / 4)
+    }));
+    const WORD_BY_ID = new Map(ALL_WORDS.map(w => [w.id, w]));
+
+    const STORAGE_KEY = 'vocab_mistakes_v2';
+    const QUIZ_SIZE = 10;
+
+    function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+    function safeSet(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+
+    let currentMode = 'choice';
+    let currentQuizList = [];
+    let currentQuestionIdx = 0;
+    let userAnswers = [];
+    let flashcardIdx = 0;
+
+    // 讀取錯題本：以編號對應最新單字庫，單字不符的舊資料直接丟棄
+    let mistakes = [];
+    try {
+      const raw = JSON.parse(safeGet(STORAGE_KEY) || '[]');
+      raw.forEach(m => {
+        const old = m && (m.wordItem || m);
+        const fresh = old && WORD_BY_ID.get(old.id);
+        if (fresh && String(old.word || '').replace(/_\d+$/, '').trim().toLowerCase() === fresh.word.toLowerCase()) {
+          mistakes.push({ wordItem: fresh, streak: (m && m.streak) || 0 });
+        }
+      });
+    } catch (e) { mistakes = []; }
+    saveMistakes();
+
+    function saveMistakes() { safeSet(STORAGE_KEY, JSON.stringify(mistakes)); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateMistakeBadge();
+      setupEventListeners();
+      updateStartLabel();
+    });
+
+    function updateStartLabel() {
+      const btn = document.getElementById('start-btn');
+      if (currentMode === 'flashcard') btn.textContent = '📖 依天數範圍開始瀏覽單字卡';
+      else if (currentMode === 'mistakes') btn.textContent = '⚠️ 從錯題本抽取最多 10 題開始';
+      else btn.textContent = '🔀 隨機抽取 10 題開始';
+    }
+
+    function setupEventListeners() {
+      document.getElementById('theme-btn').addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+      });
+
+      const modes = [
+        { id: 'mode-choice', mode: 'choice' },
+        { id: 'mode-spelling', mode: 'spelling' },
+        { id: 'mode-flashcard', mode: 'flashcard' },
+        { id: 'mode-mistakes', mode: 'mistakes' }
+      ];
+
+      modes.forEach(item => {
+        document.getElementById(item.id).addEventListener('click', (e) => {
+          document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('btn-active'));
+          e.currentTarget.classList.add('btn-active');
+          currentMode = item.mode;
+          updateStartLabel();
+        });
+      });
+
+      document.getElementById('start-btn').addEventListener('click', startSession);
+      document.getElementById('restart-btn').addEventListener('click', () => {
+        document.getElementById('result-section').classList.add('hidden');
+        startSession();
+      });
+
+      document.getElementById('next-btn').addEventListener('click', handleNextQuestion);
+      document.getElementById('spelling-answer').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleNextQuestion();
+      });
+
+      document.getElementById('quiz-speak-btn').addEventListener('click', () => {
+        const item = currentQuizList[currentQuestionIdx];
+        if (item) speakWord(item.word);
+      });
+
+      document.getElementById('fc-speak-btn').addEventListener('click', () => {
+        const item = currentQuizList[flashcardIdx];
+        if (item) speakWord(item.word);
+      });
+
+      document.getElementById('fc-meaning').addEventListener('click', () => {
+        const item = currentQuizList[flashcardIdx];
+        if (item) document.getElementById('fc-meaning').innerText = `${item.pos} ${item.meaning}`;
+      });
+
+      document.getElementById('fc-prev-btn').addEventListener('click', () => {
+        if (flashcardIdx > 0) { flashcardIdx--; renderFlashcard(); }
+      });
+
+      document.getElementById('fc-next-btn').addEventListener('click', () => {
+        if (flashcardIdx < currentQuizList.length - 1) { flashcardIdx++; renderFlashcard(); }
+      });
+
+      // 結果清單中的發音按鈕（事件委派，避免單字含特殊符號）
+      document.getElementById('result-list').addEventListener('click', (e) => {
+        const b = e.target.closest('.audio-btn');
+        if (b && b.dataset.word) speakWord(b.dataset.word);
+      });
+    }
+
+    function speakWord(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function startSession() {
+      let startDay = parseInt(document.getElementById('start-day').value) || 1;
+      let endDay = parseInt(document.getElementById('end-day').value) || 495;
+      if (startDay > endDay) [startDay, endDay] = [endDay, startDay];
+
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('flashcard-section').classList.add('hidden');
+      document.getElementById('result-section').classList.add('hidden');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      if (currentMode === 'mistakes') {
+        if (mistakes.length === 0) {
+          alert('目前錯題本是空的！太棒了！');
+          return;
+        }
+        currentQuizList = shuffle(mistakes.map(m => m.wordItem)).slice(0, QUIZ_SIZE);
+      } else {
+        const filtered = ALL_WORDS.filter(w => w.day >= startDay && w.day <= endDay);
+        if (filtered.length === 0) {
+          alert('該天數範圍內沒有單字！');
+          return;
+        }
+        // 單字卡依 Day 順序瀏覽；測驗則隨機抽 10 題
+        currentQuizList = currentMode === 'flashcard' ? filtered : shuffle(filtered).slice(0, QUIZ_SIZE);
+      }
+
+      currentQuestionIdx = 0;
+      userAnswers = [];
+
+      if (currentMode === 'flashcard') {
+        flashcardIdx = 0;
+        document.getElementById('flashcard-section').classList.remove('hidden');
+        renderFlashcard();
+      } else {
+        document.getElementById('quiz-section').classList.remove('hidden');
+        renderQuestion();
+      }
+    }
+
+    function renderQuestion() {
+      const item = currentQuizList[currentQuestionIdx];
+      if (!item) return;
+
+      document.getElementById('quiz-current-step').innerText = `題目 ${currentQuestionIdx + 1} / ${currentQuizList.length}`;
+      document.getElementById('progress-fill').style.width = `${((currentQuestionIdx + 1) / currentQuizList.length) * 100}%`;
+      document.getElementById('next-btn').innerText = currentQuestionIdx === currentQuizList.length - 1 ? '完成並計分 ✔' : '下一題 ➔';
+
+      document.getElementById('word-pos').innerText = item.pos || '';
+      document.getElementById('word-day').innerText = `Day ${item.day}`;
+
+      const optionsContainer = document.getElementById('options-container');
+      const spellingContainer = document.getElementById('spelling-container');
+      const speakBtn = document.getElementById('quiz-speak-btn');
+
+      if (currentMode === 'choice' || currentMode === 'mistakes') {
+        optionsContainer.classList.remove('hidden');
+        spellingContainer.classList.add('hidden');
+        speakBtn.classList.remove('hidden');
+        document.getElementById('target-word').innerText = item.word;
+
+        optionsContainer.innerHTML = '';
+        generateUniqueOptions(item).forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'option-btn';
+          btn.innerHTML = `<span>${escapeHtml(opt.meaning)}</span><span>›</span>`;
+          btn.onclick = () => {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            btn.dataset.selectedWord = opt.word;
+            btn.dataset.selectedMeaning = opt.meaning;
+          };
+          optionsContainer.appendChild(btn);
+        });
+        speakWord(item.word);
+
+      } else if (currentMode === 'spelling') {
+        optionsContainer.classList.add('hidden');
+        spellingContainer.classList.remove('hidden');
+        speakBtn.classList.add('hidden'); // 拼字模式不提供發音，避免直接洩漏答案
+        document.getElementById('target-word').innerText = item.meaning;
+        const input = document.getElementById('spelling-answer');
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    // 選項：優先挑詞性相同、中文不重複的單字，不足再補其他詞性
+    function generateUniqueOptions(correctItem) {
+      const options = [correctItem];
+      const usedMeanings = new Set([correctItem.meaning]);
+      const pool = ALL_WORDS.filter(w => w.id !== correctItem.id && w.meaning !== correctItem.meaning);
+      const samePos = shuffle(pool.filter(w => w.pos === correctItem.pos));
+      const otherPos = shuffle(pool.filter(w => w.pos !== correctItem.pos));
+
+      for (const cand of [...samePos, ...otherPos]) {
+        if (options.length >= 4) break;
+        if (!usedMeanings.has(cand.meaning)) {
+          usedMeanings.add(cand.meaning);
+          options.push(cand);
+        }
+      }
+      return shuffle(options);
+    }
+
+    function handleNextQuestion() {
+      const item = currentQuizList[currentQuestionIdx];
+      if (!item) return;
+
+      let userAns = '';
+      let userAnsObj = null;
+
+      if (currentMode === 'choice' || currentMode === 'mistakes') {
+        const selectedBtn = document.querySelector('.option-btn.selected');
+        if (!selectedBtn) {
+          alert('請選擇一個答案！');
+          return;
+        }
+        userAns = selectedBtn.dataset.selectedMeaning;
+        userAnsObj = { word: selectedBtn.dataset.selectedWord, meaning: selectedBtn.dataset.selectedMeaning };
+      } else if (currentMode === 'spelling') {
+        userAns = document.getElementById('spelling-answer').value.trim();
+        if (!userAns) {
+          alert('請輸入答案！');
+          return;
+        }
+        userAnsObj = { word: userAns, meaning: userAns };
+      }
+
+      let isCorrect;
+      if (currentMode === 'spelling') {
+        // 中文意思相同的字（例如 advice / advise）都算對
+        const norm = s => s.toLowerCase().replace(/[’']/g, "'").replace(/\s+/g, ' ').trim();
+        isCorrect = ALL_WORDS.some(w => w.meaning === item.meaning && norm(w.word) === norm(userAns));
+      } else {
+        isCorrect = userAns === item.meaning;
+      }
+
+      userAnswers.push({ target: item, userAns: userAnsObj, isCorrect });
+      currentQuestionIdx++;
+
+      if (currentQuestionIdx < currentQuizList.length) {
+        renderQuestion();
+      } else {
+        syncMistakesAndShowResults();
+      }
+    }
+
+    function syncMistakesAndShowResults() {
+      userAnswers.forEach(ans => {
+        const idx = mistakes.findIndex(m => m.wordItem.id === ans.target.id);
+        if (!ans.isCorrect) {
+          if (idx > -1) mistakes[idx].streak = 0;
+          else mistakes.push({ wordItem: ans.target, streak: 0 });
+        } else if (idx > -1) {
+          mistakes[idx].streak++;
+          if (mistakes[idx].streak >= 2) mistakes.splice(idx, 1); // 連續答對 2 次移出錯題本
+        }
+      });
+      saveMistakes();
+      updateMistakeBadge();
+      showResults();
+    }
+
+    function showResults() {
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('result-section').classList.remove('hidden');
+      document.getElementById('final-total').innerText = userAnswers.length;
+
+      let score = 0;
+      const resultList = document.getElementById('result-list');
+      resultList.innerHTML = '';
+
+      userAnswers.forEach((ans, idx) => {
+        if (ans.isCorrect) score++;
+
+        const div = document.createElement('div');
+        div.className = `result-item ${ans.isCorrect ? 'correct' : 'wrong'}`;
+
+        const t = ans.target;
+        const userDisplay = (currentMode === 'spelling' || ans.userAns.word === ans.userAns.meaning)
+          ? ans.userAns.meaning
+          : `${ans.userAns.meaning} (${ans.userAns.word})`;
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <strong>#${idx + 1} ${escapeHtml(t.word)} (${escapeHtml(t.pos)}) · Day ${t.day}</strong>
+            <button class="audio-btn" data-word="${escapeHtml(t.word)}">🔊</button>
+          </div>
+          <div>單字與解釋：${escapeHtml(t.word)} (${escapeHtml(t.meaning)})</div>
+          <div style="color: ${ans.isCorrect ? 'var(--success)' : 'var(--danger)'}">
+            您的回答：${escapeHtml(userDisplay)}
+          </div>
+          ${!ans.isCorrect ? `<div style="color: var(--primary);">正確解答：${escapeHtml(currentMode === 'spelling' ? t.word : t.meaning)}</div>` : ''}
+        `;
+        resultList.appendChild(div);
+      });
+
+      document.getElementById('final-score').innerText = score;
+    }
+
+    function renderFlashcard() {
+      const item = currentQuizList[flashcardIdx];
+      if (!item) return;
+      document.getElementById('fc-pos').innerText = item.pos || '';
+      document.getElementById('fc-day').innerText = `Day ${item.day}`;
+      document.getElementById('fc-count').innerText = `${flashcardIdx + 1} / ${currentQuizList.length}`;
+      document.getElementById('fc-word').innerText = item.word;
+      document.getElementById('fc-meaning').innerText = '點擊顯示中文解釋';
+      speakWord(item.word);
+    }
+
+    function updateMistakeBadge() {
+      document.getElementById('mistake-count').innerText = mistakes.length;
+    }
+  </script>
+</body>
+</html>
