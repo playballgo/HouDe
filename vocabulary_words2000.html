@@ -380,11 +380,12 @@
       } else if (currentMode === 'spelling') {
         optionsContainer.classList.add('hidden');
         spellingContainer.classList.remove('hidden');
-        speakBtn.classList.add('hidden'); // 拼字模式不提供發音，避免直接洩漏答案
+        speakBtn.classList.remove('hidden'); // 拼字模式也提供發音
         document.getElementById('target-word').innerText = item.meaning;
         const input = document.getElementById('spelling-answer');
         input.value = '';
         input.focus();
+        speakWord(item.word); // 進入題目時自動播放一次
       }
     }
 
